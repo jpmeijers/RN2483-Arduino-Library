@@ -1,6 +1,11 @@
 # RN2483-Arduino-Library
 Arduino C++ code to communicate with a Microchip RN2483 module
 
+# Installation
+At the top of this website (https://github.com/jpmeijers/RN2483-Arduino-Library), choose Clone or download -> Download ZIP.
+
+Follow the instructions on https://www.arduino.cc/en/Guide/Libraries to import this library into your Arduino IDE.
+
 # Examples
 Examples with this library are meant to be used to contribute to TTN Mapper.
 
