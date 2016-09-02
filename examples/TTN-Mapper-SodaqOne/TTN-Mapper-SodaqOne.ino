@@ -32,9 +32,9 @@ String toLog;
 void setup()
 {
     delay(3000);
-    while (!SerialUSB) {
+    //while (!SerialUSB) {
         // Wait for USB to connect
-    }
+    //}
 
     SerialUSB.begin(57600);
     Serial1.begin(57600);
@@ -74,7 +74,7 @@ void initialize_radio()
   SerialUSB.println("Trying to join TTN");
   bool join_result = false;
   
-  //ABP: initABP(String NwkSKey, String AppSKey, String addr);
+  //ABP: initABP(String addr, String AppSKey, String NwkSKey);
   join_result = myLora.initABP("02017201", "8D7FFEF938589D95AAD928C2E2E7E48F", "AE17E567AECC8787F749A62F5541D522");
   
   //OTAA: initOTAA(String AppEUI, String AppKey);
