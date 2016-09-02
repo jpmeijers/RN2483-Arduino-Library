@@ -57,12 +57,14 @@ class rn2483
      * Initialise the RN2483 and join The Things Network using personalization. 
      * This ignores your previous choice to use or not use the LoRa WAN.
      */
-    bool init(String AppEUI, String NwkSKey, String AppSKey, String addr);
+    bool initABP(String addr, String AppSKey, String NwkSKey);
+    bool init(String addr, String AppSKey, String NwkSKey);
 
     /*
      * Initialise the RN2483 and join The Things Network using over the air activation. 
      * This ignores your previous choice to use or not use the LoRa WAN.
      */
+    bool initOTAA(String AppEUI, String AppKey);
     bool init(String AppEUI, String AppKey);
 
     /*
@@ -90,6 +92,20 @@ class rn2483
      * bool should the data string be hex encoded or not
      */
     bool txData(String, String, bool);
+    
+    /*
+     * Change the datarate at which the RN2483 transmits.
+     * A value of between 0 and 5 can be specified, 
+     * as is defined in the LoRaWan specs.
+     * This can be overwritten by the network when using OTAA.
+     */
+    void setDR(int dr);
+    
+    /*
+     * Send a raw command to the RN2483 module.
+     * Returns the raw string as received back from the RN2483.
+     */
+    String sendRawCommand(String command);
 
 
   private:

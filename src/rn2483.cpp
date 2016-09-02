@@ -45,9 +45,8 @@ void rn2483::autobaud()
 
 String rn2483::hweui()
 {
-  //clear serial buffer
-  while(_serial.read() != -1);
-
+  delay(100);
+  _serial.flush();
   _serial.println("sys get hweui");
   String addr = _serial.readStringUntil('\n');
   addr.trim();
@@ -56,9 +55,8 @@ String rn2483::hweui()
 
 String rn2483::sysver()
 {
-  //clear serial buffer
-  while(_serial.read() != -1);
-
+  delay(100);
+  _serial.flush();
   _serial.println("sys get ver");
   String ver = _serial.readStringUntil('\n');
   ver.trim();
@@ -77,8 +75,14 @@ bool rn2483::init()
   }
   else
   {
-    return init(_appeui, _nwkskey, _appskey, _devAddr);
+    return init(_devAddr, _appskey, _nwkskey);
   }
+}
+
+
+bool rn2483::initOTAA(String AppEUI, String AppKey)
+{
+  return init(AppEUI, AppKey);
 }
 
 bool rn2483::init(String AppEUI, String AppKey)
@@ -87,25 +91,23 @@ bool rn2483::init(String AppEUI, String AppKey)
   _appeui = AppEUI;
   _nwkskey = "0";
   _appskey = AppKey; //reuse the variable
+  String receivedData;
 
   //clear serial buffer
-  while(_serial.read() != -1);
+  _serial.flush();
 
   _serial.println("sys get hweui");
   String addr = _serial.readStringUntil('\n');
   addr.trim();
   
   _serial.println("mac reset 868");
-  String receivedData = _serial.readStringUntil('\n');
-  Serial.print(receivedData);
+  receivedData = _serial.readStringUntil('\n');
 
   _serial.println("mac set appeui "+_appeui);
   receivedData = _serial.readStringUntil('\n');
-  Serial.print(receivedData);
 
   _serial.println("mac set appkey "+_appskey);
   receivedData = _serial.readStringUntil('\n');
-  Serial.print(receivedData);
 
   if(addr!="" && addr.length() == 16)
   {
@@ -116,30 +118,19 @@ bool rn2483::init(String AppEUI, String AppKey)
     _serial.println("mac set deveui "+_default_deveui);
   }
   receivedData = _serial.readStringUntil('\n');
-  Serial.print(receivedData);
 
   _serial.println("mac set pwridx 1");
   receivedData = _serial.readStringUntil('\n');
-  Serial.print(receivedData);
 
   _serial.println("mac set adr off");
   receivedData = _serial.readStringUntil('\n');
-  Serial.print(receivedData);
 
   _serial.println("mac set rx2 3 869525000");
   receivedData = _serial.readStringUntil('\n');
-  Serial.print(receivedData);
 
-  // _serial.println("mac set retx 10");
-  // _serial.readStringUntil('\n');
-  // _serial.println("mac set linkchk 60");
-  // _serial.readStringUntil('\n');
-  // _serial.println("mac set ar on");
-  // _serial.readStringUntil('\n');
   _serial.setTimeout(30000);
   _serial.println("mac save");
   receivedData = _serial.readStringUntil('\n');
-  Serial.print(receivedData);
 
   bool joined = false;
 
@@ -147,9 +138,7 @@ bool rn2483::init(String AppEUI, String AppKey)
   {
     _serial.println("mac join otaa");
     receivedData = _serial.readStringUntil('\n');
-    Serial.print(receivedData);
     receivedData = _serial.readStringUntil('\n');
-    Serial.print(receivedData);
 
     if(receivedData.startsWith("accepted"))
     {
@@ -165,16 +154,21 @@ bool rn2483::init(String AppEUI, String AppKey)
   return joined;
 }
 
-bool rn2483::init(String AppEUI, String NwkSKey, String AppSKey, String addr)
+bool rn2483::initABP(String devAddr, String AppSKey, String NwkSKey)
+{
+  return init(devAddr, AppSKey, NwkSKey);
+}
+
+bool rn2483::init(String devAddr, String AppSKey, String NwkSKey)
 {
   _otaa = false;
-  _appeui = AppEUI;
-  _nwkskey = NwkSKey;
+  _devAddr = devAddr;
   _appskey = AppSKey;
-  _devAddr = addr;
+  _nwkskey = NwkSKey;
+  String receivedData;
 
   //clear serial buffer
-  while(_serial.read() != -1);
+  _serial.flush();
   
   _serial.println("mac reset 868");
   _serial.readStringUntil('\n');
@@ -204,12 +198,21 @@ bool rn2483::init(String AppEUI, String NwkSKey, String AppSKey, String addr)
   _serial.println("mac save");
   _serial.readStringUntil('\n');
   _serial.println("mac join abp");
-  _serial.readStringUntil('\n');
-  _serial.readStringUntil('\n');
+  receivedData = _serial.readStringUntil('\n');
+  receivedData = _serial.readStringUntil('\n');
+  
   _serial.setTimeout(2000);
   delay(1000);
   
-  return true; //with otaa we can always join successfully
+  if(receivedData.startsWith("accepted"))
+  {
+    return true; 
+    //with abp we can always join successfully as long as the keys are valid
+  }
+  else
+  {
+    return false;
+  }
 }
 
 void rn2483::tx(String data)
@@ -432,4 +435,26 @@ String rn2483::base16decode(String input)
   }
   charsOut[i] = '\0';
   return charsOut;
+}
+
+void rn2483::setDR(int dr)
+{
+  if(dr>=0 && dr<=5)
+  {
+    delay(100);
+    _serial.flush();
+    _serial.print("mac set dr ");
+    _serial.println(dr);
+    _serial.readStringUntil('\n');
+  }
+}
+
+String rn2483::sendRawCommand(String command)
+{
+  delay(100);
+  _serial.flush();
+  _serial.println(command);
+  String ret = _serial.readStringUntil('\n');
+  ret.trim();
+  return ret;
 }
