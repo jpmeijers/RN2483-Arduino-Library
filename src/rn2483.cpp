@@ -17,11 +17,13 @@ extern "C" {
 /*
   @param serial Needs to be an already opened stream to write to and read from.
 */
+#ifdef SoftwareSerial_h
 rn2483::rn2483(SoftwareSerial& serial):
 _serial(serial)
 {
   _serial.setTimeout(2000);
 }
+#endif
 
 rn2483::rn2483(HardwareSerial& serial):
 _serial(serial)
@@ -46,7 +48,10 @@ void rn2483::autobaud()
 String rn2483::hweui()
 {
   delay(100);
-  _serial.flush();
+  while(_serial.available())
+  {
+    _serial.read();
+  }
   _serial.println("sys get hweui");
   String addr = _serial.readStringUntil('\n');
   addr.trim();
@@ -56,7 +61,8 @@ String rn2483::hweui()
 String rn2483::sysver()
 {
   delay(100);
-  _serial.flush();
+  while(_serial.available())
+    _serial.read();
   _serial.println("sys get ver");
   String ver = _serial.readStringUntil('\n');
   ver.trim();
@@ -94,7 +100,8 @@ bool rn2483::init(String AppEUI, String AppKey)
   String receivedData;
 
   //clear serial buffer
-  _serial.flush();
+  while(_serial.available())
+    _serial.read();
 
   _serial.println("sys get hweui");
   String addr = _serial.readStringUntil('\n');
@@ -168,7 +175,8 @@ bool rn2483::init(String devAddr, String AppSKey, String NwkSKey)
   String receivedData;
 
   //clear serial buffer
-  _serial.flush();
+  while(_serial.available())
+    _serial.read();
   
   _serial.println("mac reset 868");
   _serial.readStringUntil('\n');
@@ -273,7 +281,11 @@ bool rn2483::txData(String command, String data, bool shouldEncode)
       else if(receivedData.startsWith("mac_rx"))
       {
         //we received data downstream
-        //TODO: handle received data
+        //TODO: handle received data - 
+        // this can be done by returning a struct containing:
+        // 1. a boolean for confirmed message acks'
+        // 2. a boolean for received data
+        // 3. a string/char array for the downlink data
         send_success = true;
         return true;
       }
@@ -442,7 +454,8 @@ void rn2483::setDR(int dr)
   if(dr>=0 && dr<=5)
   {
     delay(100);
-    _serial.flush();
+    while(_serial.available())
+      _serial.read();
     _serial.print("mac set dr ");
     _serial.println(dr);
     _serial.readStringUntil('\n');
@@ -452,7 +465,8 @@ void rn2483::setDR(int dr)
 String rn2483::sendRawCommand(String command)
 {
   delay(100);
-  _serial.flush();
+  while(_serial.available())
+    _serial.read();
   _serial.println(command);
   String ret = _serial.readStringUntil('\n');
   ret.trim();

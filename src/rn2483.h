@@ -10,7 +10,9 @@
 #define rn2483_h
 
 #include "Arduino.h"
-#include <SoftwareSerial.h>
+#if defined(ARDUINO_ARCH_AVR)
+ #include <SoftwareSerial.h>
+#endif
 
 class rn2483
 {
@@ -20,7 +22,9 @@ class rn2483
      * It is assumed that LoRa WAN will be used.
      * The serial port should already be initialised when initialising this library.
      */
-    rn2483(SoftwareSerial& serial);
+    #ifdef SoftwareSerial_h
+      rn2483(SoftwareSerial& serial);
+    #endif
 
     /*
      * A simplified constructor taking only a HardwareSerial object.
