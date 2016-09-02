@@ -32,13 +32,10 @@
  * 
  */
 #include <rn2483.h>
-#include <SoftwareSerial.h>
-
-SoftwareSerial mySerial(10, 11); // RX, TX
 
 //create an instance of the rn2483 library, 
 //giving the software serial as port to use
-rn2483 myLora(mySerial);
+rn2483 myLora(Serial1);
 
 // the setup routine runs once when you press reset:
 void setup() 
@@ -49,13 +46,15 @@ void setup()
   
   // Open serial communications and wait for port to open:
   Serial.begin(57600); //serial port to computer
-  mySerial.begin(9600); //serial port to radio
+  Serial1.begin(57600); //serial port to radio
   Serial.println("Startup");
+
+  while(!Serial); //wait for Serial to be available - remove this line after successful test run
 
   initialize_radio();
 
   //transmit a startup message
-  myLora.tx("TTN Mapper on TTN Enschede node");
+  myLora.tx("TTN Mapper on TTN Uno node");
 
   led_off();
   delay(2000);
@@ -63,18 +62,19 @@ void setup()
 
 void initialize_radio()
 {
-  //reset rn2483
-  pinMode(12, OUTPUT);
-  digitalWrite(12, LOW);
-  delay(500);
-  digitalWrite(12, HIGH);
-
-  //Autobaud the rn2483 module to 9600. The default would otherwise be 57600.
-  myLora.autobaud();
-
+  delay(100); //wait for the RN2483's startup message
+  Serial1.flush();
+  
   //print out the HWEUI so that we can register it via ttnctl
+  String hweui = myLora.hweui();
+  while(hweui.length() != 16)
+  {
+    Serial.println("Communication with RN2483 unsuccesful. Power cycle the TTN UNO board.");
+    delay(10000);
+    hweui = myLora.hweui();
+  }
   Serial.println("When using OTAA, register this DevEUI: ");
-  Serial.println(myLora.hweui());
+  Serial.println(hweui);
   Serial.println("RN2483 firmware version:");
   Serial.println(myLora.sysver());
 
