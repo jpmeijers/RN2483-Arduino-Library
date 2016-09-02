@@ -7,10 +7,10 @@ At the top of this website (https://github.com/jpmeijers/RN2483-Arduino-Library)
 Follow the instructions on https://www.arduino.cc/en/Guide/Libraries to import this library into your Arduino IDE.
 
 # Examples
-Examples with this library are meant to be used to contribute to TTN Mapper.
+Examples with this library are meant to be used to contribute to TTN Mapper (http://ttnmapper.org).
 
 # License
-All code in this repository falls under the Apache v2.0 license.
+All code in this repository falls under the Apache v2.0 license, unless otherwise stated in the header of the respective file.
 
    Copyright 2016 JP Meijers
 
