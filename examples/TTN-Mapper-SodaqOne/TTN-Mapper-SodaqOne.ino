@@ -18,6 +18,11 @@
  * 
  * This program makes use of the Sodaq UBlox library, but with minor changes to include altitude and HDOP.
  * 
+ * LED indicators:
+ * Blue: Busy transmitting a packet
+ * Green waiting for a new GPS fix
+ * Red: GPS fix taking a long time. Try to go outdoors.
+ * 
  */
 #include <Arduino.h>
 #include "Sodaq_UBlox_GPS.h"
@@ -48,6 +53,14 @@ void setup()
 
     // initialize GPS with enable on pin 27
     sodaq_gps.init(27);
+
+    // myLora.setDR(0); //set the datarate at which we measure. DR7 is the best.
+    pinMode(LED_BLUE, OUTPUT);
+    digitalWrite(LED_BLUE, HIGH);
+    pinMode(LED_RED, OUTPUT);
+    digitalWrite(LED_RED, HIGH);
+    pinMode(LED_GREEN, OUTPUT);
+    digitalWrite(LED_GREEN, HIGH);
 }
 
 void initialize_radio()
@@ -93,10 +106,16 @@ void initialize_radio()
 void loop()
 {
   SerialUSB.println("Waiting for GPS fix");
+  
+  digitalWrite(LED_GREEN, LOW);
   sodaq_gps.scan();
+  digitalWrite(LED_GREEN, HIGH);
+  
   while(sodaq_gps.getLat()==0.0)
   {
+    digitalWrite(LED_RED, LOW);
     sodaq_gps.scan();
+    digitalWrite(LED_RED, HIGH);
   }
 
   toLog = String(long(sodaq_gps.getLat()*1000000));
@@ -108,6 +127,8 @@ void loop()
   toLog+=String(int(sodaq_gps.getHDOP()*100));
 
   SerialUSB.println(toLog);
+  digitalWrite(LED_BLUE, LOW);
   myLora.tx(toLog);
+  digitalWrite(LED_BLUE, HIGH);
   SerialUSB.println("TX done");
 }
