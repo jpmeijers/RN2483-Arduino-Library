@@ -238,6 +238,11 @@ void rn2483::txUncnf(String data)
   txData("mac tx uncnf 1 ", data, true);
 }
 
+bool rn2483::txData(String data, bool shouldEncode)
+{
+  txData("mac tx uncnf 1 ", data, shouldEncode);
+}
+
 bool rn2483::txData(String command, String data, bool shouldEncode)
 {
   bool send_success = false;

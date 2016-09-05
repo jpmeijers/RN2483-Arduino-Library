@@ -98,6 +98,12 @@ class rn2483
     bool txData(String, String, bool);
     
     /*
+     * Transmit the provided data as an uncorfirmed message. 
+     * bool should the data be HEX encoded or not
+     */
+    bool txData(String, bool);
+    
+    /*
      * Change the datarate at which the RN2483 transmits.
      * A value of between 0 and 5 can be specified, 
      * as is defined in the LoRaWan specs.
