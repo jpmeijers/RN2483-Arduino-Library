@@ -33,7 +33,7 @@
 rn2483 myLora(Serial1);
 
 String toLog;
-char txBuffer[9];
+uint8_t txBuffer[9];
 uint32_t LatitudeBinary, LongitudeBinary;
 uint16_t altitudeGps;
 uint8_t hdopGps;
