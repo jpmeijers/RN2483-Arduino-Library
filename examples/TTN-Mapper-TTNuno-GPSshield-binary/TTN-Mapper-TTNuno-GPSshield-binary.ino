@@ -2,9 +2,16 @@
  * Author: JP Meijers
  * Date: 2016-09-07
  * 
- * This example program is meant for a TTN UNO with an "Adafruit Ultimate GPS+Logging Shield" on top of it. Make sure the switch on the GPS shield is switched to the "Soft. Serial" position.
+ * This example program is meant for a TTN UNO with an 
+ * "Adafruit Ultimate GPS+Logging Shield" on top of it. Make sure the switch on 
+ * the GPS shield is switched to the "Soft. Serial" position.
  *
- * Coordinates from the GPS is packed into a LoRaWan packet using binary encoding, and then sent out on the air using the TTN UNO's RN2483 module. This happens as fast as possible, while still keeping to the 1% duty cycle rules enforced by the RN2483's built in LoRaWAN stack. Even though this is allowed by the radio regulations of the 868MHz band, the fair use policy of TTN may prohibit this.
+ * Coordinates from the GPS is packed into a LoRaWan packet using binary 
+ * encoding, and then sent out on the air using the TTN UNO's RN2483 module. 
+ * This happens as fast as possible, while still keeping to the 1% duty cycle 
+ * rules enforced by the RN2483's built in LoRaWAN stack. Even though this is 
+ * allowed by the radio regulations of the 868MHz band, the fair use policy of 
+ * TTN may prohibit this.
  * 
  * CHECK THE RULES BEFORE USING THIS PROGRAM!
  * 
@@ -15,11 +22,17 @@
  * When using ABP, it is advised to enable "relax frame count" on the dashboard.
  *
  * TO CONTRIBUTE TO TTN Mapper:
- * 1. Register a new Application and/or new device on the TTN Dashboard (https://staging.thethingsnetwork.org).
- * 2. Copy the correct keys into the line "myLora.initABP(XXX);" or "myLora.initOTAA(XXX);" in this program.
- * 3. Comment out or remove the line: "while(!Serial); //wait for Serial to be available - remove this line after successful test run"
- * 4. Make sure packets are arriving on the TTN Dashboard when your node is powered and in reach of a gateway.
- * 5. Share your Application EUI, Access Key and Device EUI with contribute@ttnmapper.org so that your measurements can be automatically imported into TTN Mapper.
+ * 1. Register a new Application and/or new device on the 
+ *     TTN Dashboard (https://staging.thethingsnetwork.org).
+ * 2. Copy the correct keys into the line "myLora.initABP(XXX);" 
+ *     or "myLora.initOTAA(XXX);" in this program.
+ * 3. Comment out or remove the line: "while(!Serial); //wait for Serial to 
+       be available - remove this line after successful test run"
+ * 4. Make sure packets are arriving on the TTN Dashboard when your node is 
+ *     powered and in reach of a gateway.
+ * 5. Share your Application EUI, Access Key and Device EUI with
+ *     contribute@ttnmapper.org so that your measurements can be automatically
+ *     imported into TTN Mapper.
  * 
  */
 #include "TinyGPS++.h"
