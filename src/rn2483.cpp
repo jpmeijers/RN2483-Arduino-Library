@@ -238,7 +238,7 @@ void rn2483::txUncnf(String data)
   txData("mac tx uncnf 1 ", data, true);
 }
 
-bool rn2483::txData(String data, bool shouldEncode)
+void rn2483::txData(String data, bool shouldEncode)
 {
   txData("mac tx uncnf 1 ", data, shouldEncode);
 }

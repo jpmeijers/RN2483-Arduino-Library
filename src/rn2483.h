@@ -101,7 +101,7 @@ class rn2483
      * Transmit the provided data as an uncorfirmed message. 
      * bool should the data be HEX encoded or not
      */
-    bool txData(String, bool);
+    void txData(String, bool);
     
     /*
      * Change the datarate at which the RN2483 transmits.
