@@ -395,7 +395,7 @@ void rn2483::sendEncoded(String input)
 {
   char working;
   char buffer[3];
-  for(int i=0; i<input.length(); i++)
+  for (unsigned i=0; i<input.length(); i++)
   {
     working = input.charAt(i);
     sprintf(buffer, "%02x", int(working));
@@ -410,7 +410,7 @@ String rn2483::base16encode(String input)
   input.trim();
   input.toCharArray(charsIn, input.length()+1);
   
-  int i = 0;
+  unsigned i = 0;
   for(i = 0; i<input.length()+1; i++)
   {
     if(charsIn[i] == '\0') break;
@@ -434,7 +434,7 @@ String rn2483::base16decode(String input)
   input.trim();
   input.toCharArray(charsIn, input.length()+1);
   
-  int i = 0;
+  unsigned i = 0;
   for(i = 0; i<input.length()/2+1; i++)
   {
     if(charsIn[i*2] == '\0') break;
