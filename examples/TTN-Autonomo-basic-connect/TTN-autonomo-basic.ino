@@ -3,7 +3,7 @@
  *    a Sodaq Autonomo equiped with a
  *    LoRaBee to The Things Network
  *
- *
+ *    Author: Richard Verbruggen - http://vannut.nl
  */
 
 #include <rn2483.h>
