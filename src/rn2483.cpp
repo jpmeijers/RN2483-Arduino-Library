@@ -107,7 +107,7 @@ bool rn2483::init(String AppEUI, String AppKey)
   String addr = _serial.readStringUntil('\n');
   addr.trim();
 
-  _serial.println("mac reset 868");
+  _serial.println("mac reset");
   receivedData = _serial.readStringUntil('\n');
 
   _serial.println("mac set appeui "+_appeui);
@@ -130,9 +130,6 @@ bool rn2483::init(String AppEUI, String AppKey)
   receivedData = _serial.readStringUntil('\n');
 
   _serial.println("mac set adr off");
-  receivedData = _serial.readStringUntil('\n');
-
-  _serial.println("mac set rx2 3 869525000");
   receivedData = _serial.readStringUntil('\n');
 
   _serial.setTimeout(30000);
@@ -178,10 +175,7 @@ bool rn2483::init(String devAddr, String AppSKey, String NwkSKey)
   while(_serial.available())
     _serial.read();
 
-  _serial.println("mac reset 868");
-  _serial.readStringUntil('\n');
-
-  _serial.println("mac set rx2 3 869525000");
+  _serial.println("mac reset");
   _serial.readStringUntil('\n');
 
   _serial.println("mac set nwkskey "+_nwkskey);
