@@ -10,7 +10,7 @@
 #define rn2483_h
 
 #include "Arduino.h"
-#if defined(ARDUINO_ARCH_AVR)
+#if defined(ARDUINO_ARCH_AVR) || defined(ESP8266)
  #include <SoftwareSerial.h>
 #endif
 
