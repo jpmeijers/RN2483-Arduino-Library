@@ -38,7 +38,7 @@ class rn2483
      * After this operation the rn2483 should communicate at the same baud rate than us.
      */
     void autobaud();
-    
+
     /*
      * Get the hardware EUI of the radio, so that we can register it on The Things Network
      * and obtain the correct AppKey.
@@ -46,7 +46,7 @@ class rn2483
      * In other words you have to at least call autobaud() some time before this function.
      */
     String hweui();
-    
+
     /*
      * Get the RN2483's version number.
      */
@@ -58,14 +58,14 @@ class rn2483
     bool init();
 
     /*
-     * Initialise the RN2483 and join The Things Network using personalization. 
+     * Initialise the RN2483 and join The Things Network using personalization.
      * This ignores your previous choice to use or not use the LoRa WAN.
      */
     bool initABP(String addr, String AppSKey, String NwkSKey);
     bool init(String addr, String AppSKey, String NwkSKey);
 
     /*
-     * Initialise the RN2483 and join The Things Network using over the air activation. 
+     * Initialise the RN2483 and join The Things Network using over the air activation.
      * This ignores your previous choice to use or not use the LoRa WAN.
      */
     bool initOTAA(String AppEUI, String AppKey);
@@ -96,21 +96,27 @@ class rn2483
      * bool should the data string be hex encoded or not
      */
     bool txData(String, String, bool);
-    
+
     /*
-     * Transmit the provided data as an uncorfirmed message. 
+     * Transmit the provided data as an uncorfirmed message.
      * bool should the data be HEX encoded or not
      */
     void txData(String, bool);
-    
+
     /*
      * Change the datarate at which the RN2483 transmits.
-     * A value of between 0 and 5 can be specified, 
+     * A value of between 0 and 5 can be specified,
      * as is defined in the LoRaWan specs.
      * This can be overwritten by the network when using OTAA.
      */
     void setDR(int dr);
-    
+
+    /*
+     * Put the RN2483 to sleep for a specified timeframe.
+     * The RN2483 accepts values from 100 to 4294967296.
+     */
+    void sleep(long msec);
+
     /*
      * Send a raw command to the RN2483 module.
      * Returns the raw string as received back from the RN2483.
@@ -124,11 +130,11 @@ class rn2483
     //Flags to switch code paths. Default is to use WAN (join OTAA)
     bool _otaa = true;
 
-    //The default address to use on TTN if no address is defined. 
+    //The default address to use on TTN if no address is defined.
     //This one falls in the "testing" address space.
     String _devAddr = "03FFBEEF";
 
-    //if the hardware id can not be obtained from the module, 
+    //if the hardware id can not be obtained from the module,
     // use this deveui for LoRa WAN
     String _default_deveui = "0011223344556677";
 
