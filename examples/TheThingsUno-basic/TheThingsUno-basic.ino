@@ -1,6 +1,8 @@
 /*
  * Author: JP Meijers
  * Date: 2016-09-07
+ *
+ * This program is meant to be used on a The Things Uno board.
  * 
  * Transmit a one byte packet via TTN. This happens as fast as possible, 
  * while still keeping to the 1% duty cycle rules enforced by the RN2483's built 

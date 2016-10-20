@@ -1,6 +1,10 @@
 /*
  * Author: JP Meijers
  * Date: 2016-02-07
+ * Previous filename: TTN-Mapper-TTNEnschede-V1
+ * 
+ * This program is meant to be used with an Arduino UNO or NANO, conencted to an RN2483 radio module.
+ * It will most likely also work on other compatible Arduino or Arduino compatible boards, like The Things Uno, but might need some slight modifications.
  * 
  * Transmit a one byte packet via TTN. This happens as fast as possible, while still keeping to 
  * the 1% duty cycle rules enforced by the RN2483's built in LoRaWAN stack. Even though this is 

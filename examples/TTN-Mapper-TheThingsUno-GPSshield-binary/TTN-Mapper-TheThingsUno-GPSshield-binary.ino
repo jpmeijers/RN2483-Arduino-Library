@@ -2,7 +2,7 @@
  * Author: JP Meijers
  * Date: 2016-09-07
  * 
- * This example program is meant for a TTN UNO with an 
+ * This example program is meant for a The Things UNO board with an 
  * "Adafruit Ultimate GPS+Logging Shield" on top of it. Make sure the switch on 
  * the GPS shield is switched to the "Soft. Serial" position.
  *
