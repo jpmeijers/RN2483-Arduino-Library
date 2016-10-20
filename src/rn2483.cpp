@@ -106,7 +106,7 @@ bool rn2483::init(String AppEUI, String AppKey)
   _serial.println("sys get hweui");
   String addr = _serial.readStringUntil('\n');
   addr.trim();
-  
+
   _serial.println("mac reset 868");
   receivedData = _serial.readStringUntil('\n');
 
@@ -120,7 +120,7 @@ bool rn2483::init(String AppEUI, String AppKey)
   {
     _serial.println("mac set deveui "+addr);
   }
-  else 
+  else
   {
     _serial.println("mac set deveui "+_default_deveui);
   }
@@ -177,7 +177,7 @@ bool rn2483::init(String devAddr, String AppSKey, String NwkSKey)
   //clear serial buffer
   while(_serial.available())
     _serial.read();
-  
+
   _serial.println("mac reset 868");
   _serial.readStringUntil('\n');
 
@@ -208,13 +208,13 @@ bool rn2483::init(String devAddr, String AppSKey, String NwkSKey)
   _serial.println("mac join abp");
   receivedData = _serial.readStringUntil('\n');
   receivedData = _serial.readStringUntil('\n');
-  
+
   _serial.setTimeout(2000);
   delay(1000);
-  
+
   if(receivedData.startsWith("accepted"))
   {
-    return true; 
+    return true;
     //with abp we can always join successfully as long as the keys are valid
   }
   else
@@ -249,6 +249,10 @@ bool rn2483::txData(String command, String data, bool shouldEncode)
   uint8_t busy_count = 0;
   uint8_t retry_count = 0;
 
+  //clear serial buffer
+  while(_serial.available())
+    _serial.read();
+
   while(!send_success)
   {
     //retransmit a maximum of 10 times
@@ -275,7 +279,7 @@ bool rn2483::txData(String command, String data, bool shouldEncode)
       _serial.setTimeout(30000);
       receivedData = _serial.readStringUntil('\n');
       _serial.setTimeout(2000);
-      
+
       if(receivedData.startsWith("mac_tx_ok"))
       {
         //SUCCESS!!
@@ -286,7 +290,7 @@ bool rn2483::txData(String command, String data, bool shouldEncode)
       else if(receivedData.startsWith("mac_rx"))
       {
         //we received data downstream
-        //TODO: handle received data - 
+        //TODO: handle received data -
         // this can be done by returning a struct containing:
         // 1. a boolean for confirmed message acks'
         // 2. a boolean for received data
@@ -409,14 +413,14 @@ String rn2483::base16encode(String input)
   char charsIn[input.length()+1];
   input.trim();
   input.toCharArray(charsIn, input.length()+1);
-  
+
   unsigned i = 0;
   for(i = 0; i<input.length()+1; i++)
   {
     if(charsIn[i] == '\0') break;
-    
+
     int value = int(charsIn[i]);
-    
+
     char buffer[3];
     sprintf(buffer, "%02x", value);
     charsOut[2*i] = buffer[0];
@@ -433,18 +437,18 @@ String rn2483::base16decode(String input)
   char charsOut[input.length()/2+1];
   input.trim();
   input.toCharArray(charsIn, input.length()+1);
-  
+
   unsigned i = 0;
   for(i = 0; i<input.length()/2+1; i++)
   {
     if(charsIn[i*2] == '\0') break;
     if(charsIn[i*2+1] == '\0') break;
-    
+
     char toDo[2];
     toDo[0] = charsIn[i*2];
     toDo[1] = charsIn[i*2+1];
     int out = strtoul(toDo, 0, 16);
-    
+
     if(out<128)
     {
       charsOut[i] = char(out);
@@ -466,6 +470,13 @@ void rn2483::setDR(int dr)
     _serial.readStringUntil('\n');
   }
 }
+
+void rn2483::sleep(long msec)
+{
+  _serial.print("sys sleep ");
+  _serial.println(msec);
+}
+
 
 String rn2483::sendRawCommand(String command)
 {
