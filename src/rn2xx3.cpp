@@ -126,6 +126,8 @@ bool rn2xx3::init(String AppEUI, String AppKey)
   String addr = _serial.readStringUntil('\n');
   addr.trim();
 
+  configureModuleType();
+
   switch (_moduleType) {
     case RN2903:
       _serial.println("mac reset");
@@ -217,6 +219,7 @@ bool rn2xx3::init(String devAddr, String AppSKey, String NwkSKey)
   while(_serial.available())
     _serial.read();
 
+  configureModuleType();
   
   switch (_moduleType) {
     case RN2903:
