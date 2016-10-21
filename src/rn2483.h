@@ -77,6 +77,7 @@ class rn2483
      * This function is an alias for txUncnf().
      */
     void tx(String);
+    void tx(const byte*, uint8_t);
 
     /*
      * Do a confirmed transmission via LoRa WAN.
