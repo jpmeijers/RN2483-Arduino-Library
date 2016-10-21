@@ -50,13 +50,7 @@ void rn2xx3::autobaud()
 RN2xx3_t configureModuleType()
 {
   String version = sysver();
-  _debugSerial.println("ver:");
-  _debugSerial.println(version);
-  String model = version.substring(2,6);
-  _debugSerial.println("model:");
-  _debugSerial.println(model);
-  _debugSerial.println(model.toInt());
-  
+  String model = version.substring(2,6);  
   switch (model.toInt()) {
     case 2903:
       _moduleType = RN2903;
