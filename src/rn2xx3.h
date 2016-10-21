@@ -49,7 +49,7 @@ class rn2xx3
     /*
      * Auto configure for either RN2903 or RN2483 module
      */
-    RN2xx3_t rn2xx3::configureModuleType();
+    RN2xx3_t configureModuleType();
 
     /*
      * Get the hardware EUI of the radio, so that we can register it on The Things Network
