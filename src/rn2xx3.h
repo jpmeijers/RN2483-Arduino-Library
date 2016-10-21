@@ -1,29 +1,37 @@
 /*
- * A library for controlling a Microchip RN2483 LoRa radio.
+ * A library for controlling a Microchip RN2xx3 LoRa radio.
  *
  * @Author JP Meijers
+ * @Author Nicolas Schteinschraber
  * @Date 18/12/2015
  *
  */
 
-#ifndef rn2483_h
-#define rn2483_h
+#ifndef rn2xx3_h
+#define rn2xx3_h
 
 #include "Arduino.h"
 #if defined(ARDUINO_ARCH_AVR) || defined(ESP8266)
  #include <SoftwareSerial.h>
 #endif
 
-class rn2483
+enum RN2xx3_t {
+  RN_NA = 0, // Not set
+  RN2903 = 2903,
+  RN2483 = 2483
+};
+
+class rn2xx3
 {
   public:
+
+    #ifdef SoftwareSerial_h
     /*
      * A simplified constructor taking only a SoftwareSerial object.
      * It is assumed that LoRa WAN will be used.
      * The serial port should already be initialised when initialising this library.
      */
-    #ifdef SoftwareSerial_h
-      rn2483(SoftwareSerial& serial);
+      rn2xx3(SoftwareSerial& serial, Stream& debugSerial);
     #endif
 
     /*
@@ -31,8 +39,7 @@ class rn2483
      * It is assumed that LoRa WAN will be used.
      * The serial port should already be initialised when initialising this library.
      */
-    rn2483(HardwareSerial& serial);
-
+    rn2xx3(HardwareSerial& serial, Stream& debugSerial);
     /*
      * Transmit the correct sequence to the rn2483 to trigger its autobauding feature.
      * After this operation the rn2483 should communicate at the same baud rate than us.
@@ -124,8 +131,16 @@ class rn2483
     String sendRawCommand(String command);
 
 
+    /*
+     * Returns the module type either RN2903 or RN2483, or NA.
+     */
+    RN2xx3_t moduleType();
+
   private:
     Stream& _serial;
+    Stream& _debugSerial;
+    
+    RN2xx3_t _moduleType = RN_NA;
 
     //Flags to switch code paths. Default is to use WAN (join OTAA)
     bool _otaa = true;
@@ -147,6 +162,10 @@ class rn2483
     //the appskey to use for LoRa WAN
     String _appskey = "0";
 
+    /*
+     * Auto configure for either RN2903 or RN2483 module
+     */
+    RN2xx3_t configureModuleType();
 
     void sendEncoded(String);
     String base16encode(String);
