@@ -47,7 +47,7 @@ void rn2xx3::autobaud()
 }
 
 
-RN2xx3_t configureModuleType()
+RN2xx3_t rn2xx3::configureModuleType()
 {
   String version = sysver();
   String model = version.substring(2,6);  
