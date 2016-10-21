@@ -247,7 +247,14 @@ bool rn2xx3::init(String devAddr, String AppSKey, String NwkSKey)
   _serial.println("mac set ar off");
   _serial.readStringUntil('\n');
 
-  _serial.println("mac set pwridx 1"); //1=max, 5=min
+  if (_moduleType == RN2903)
+  {
+    _serial.println("mac set pwridx 5");
+  }
+  else
+  {
+    _serial.println("mac set pwridx 1");
+  }
   _serial.readStringUntil('\n');
   _serial.println("mac set dr 5"); //0= min, 7=max
   _serial.readStringUntil('\n');
