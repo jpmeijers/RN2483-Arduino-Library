@@ -31,7 +31,7 @@ class rn2xx3
      * It is assumed that LoRa WAN will be used.
      * The serial port should already be initialised when initialising this library.
      */
-      rn2xx3(SoftwareSerial& serial, HardwareSerial& debugSerial);
+      rn2xx3(SoftwareSerial& serial, Stream& debugSerial);
     #endif
 
     /*
@@ -39,7 +39,7 @@ class rn2xx3
      * It is assumed that LoRa WAN will be used.
      * The serial port should already be initialised when initialising this library.
      */
-    rn2xx3(HardwareSerial& serial, HardwareSerial& debugSerial);
+    rn2xx3(HardwareSerial& serial, Stream& debugSerial);
     /*
      * Transmit the correct sequence to the rn2483 to trigger its autobauding feature.
      * After this operation the rn2483 should communicate at the same baud rate than us.
