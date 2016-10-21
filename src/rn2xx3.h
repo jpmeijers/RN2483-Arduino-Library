@@ -47,11 +47,6 @@ class rn2xx3
     void autobaud();
 
     /*
-     * Auto configure for either RN2903 or RN2483 module
-     */
-    RN2xx3_t configureModuleType();
-
-    /*
      * Get the hardware EUI of the radio, so that we can register it on The Things Network
      * and obtain the correct AppKey.
      * You have to have a working serial connection to the radio before calling this function.
@@ -136,6 +131,11 @@ class rn2xx3
     String sendRawCommand(String command);
 
 
+    /*
+     * Returns the module type either RN2903 or RN2483, or NA.
+     */
+    RN2xx3_t moduleType();
+
   private:
     Stream& _serial;
     Stream& _debugSerial;
@@ -162,6 +162,10 @@ class rn2xx3
     //the appskey to use for LoRa WAN
     String _appskey = "0";
 
+    /*
+     * Auto configure for either RN2903 or RN2483 module
+     */
+    RN2xx3_t configureModuleType();
 
     void sendEncoded(String);
     String base16encode(String);

@@ -548,3 +548,8 @@ String rn2xx3::sendRawCommand(String command)
   ret.trim();
   return ret;
 }
+
+RN2xx3_t rn2xx3::moduleType()
+{
+  return _moduleType;
+}
