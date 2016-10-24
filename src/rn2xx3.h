@@ -30,7 +30,9 @@ class rn2xx3
      * A simplified constructor taking only a SoftwareSerial object.
      * It is assumed that LoRa WAN will be used.
      * The serial port should already be initialised when initialising this library.
+     * Optional Debug Serial
      */
+      rn2xx3(SoftwareSerial& serial);
       rn2xx3(SoftwareSerial& serial, Stream& debugSerial);
     #endif
 
@@ -38,7 +40,9 @@ class rn2xx3
      * A simplified constructor taking only a HardwareSerial object.
      * It is assumed that LoRa WAN will be used.
      * The serial port should already be initialised when initialising this library.
+     * Optional Debug Serial
      */
+    rn2xx3(HardwareSerial& serial);
     rn2xx3(HardwareSerial& serial, Stream& debugSerial);
     /*
      * Transmit the correct sequence to the rn2483 to trigger its autobauding feature.
