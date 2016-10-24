@@ -6,7 +6,7 @@
  *    Author: Richard Verbruggen - http://vannut.nl
  */
 
-#include <rn2483.h>
+#include <rn2xx3.h>
 
 // Autonomo Serial port definitions.
 #define debugSerial SerialUSB
@@ -14,7 +14,7 @@
 
 
 // create an instance of the Library.
-rn2483 myLora(loraSerial);
+rn2xx3 myLora(loraSerial);
 
 
 void setup()

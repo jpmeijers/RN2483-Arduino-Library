@@ -26,11 +26,11 @@
  */
 #include <Arduino.h>
 #include "Sodaq_UBlox_GPS.h"
-#include <rn2483.h>
+#include <rn2xx3.h>
 
-//create an instance of the rn2483 library, 
+//create an instance of the rn2xx3 library, 
 //giving the software serial as port to use
-rn2483 myLora(Serial1);
+rn2xx3 myLora(Serial1);
 
 String toLog;
 uint8_t txBuffer[9];
@@ -69,7 +69,7 @@ void setup()
 
 void initialize_radio()
 {
-  delay(100); //wait for the RN2483's startup message
+  delay(100); //wait for the RN2xx3's startup message
   while(Serial1.available()){
     Serial1.read();
   }
@@ -78,13 +78,13 @@ void initialize_radio()
   String hweui = myLora.hweui();
   while(hweui.length() != 16)
   {
-    SerialUSB.println("Communication with RN2483 unsuccesful. Power cycle the Sodaq One board.");
+    SerialUSB.println("Communication with RN2xx3 unsuccesful. Power cycle the Sodaq One board.");
     delay(10000);
     hweui = myLora.hweui();
   }
   SerialUSB.println("When using OTAA, register this DevEUI: ");
   SerialUSB.println(hweui);
-  SerialUSB.println("RN2483 firmware version:");
+  SerialUSB.println("RN2xx3 firmware version:");
   SerialUSB.println(myLora.sysver());
 
   //configure your keys and join the network
