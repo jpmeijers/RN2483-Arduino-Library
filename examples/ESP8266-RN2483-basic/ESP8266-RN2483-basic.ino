@@ -14,8 +14,8 @@
  * The appropriate line is "myLora.initABP(XXX);" or "myLora.initOTAA(XXX);"
  * When using ABP, it is advised to enable "relax frame count".
  * 
- * Connect the RN2483 as follows:
- * RN2483 -- ESP8266
+ * Connect the RN2xx3 as follows:
+ * RN2xx3 -- ESP8266
  * Uart TX -- GPIO4
  * Uart RX -- GPIO5
  * Reset -- GPIO15
@@ -23,16 +23,16 @@
  * Gnd -- Gnd
  * 
  */
-#include <rn2483.h>
+#include <rn2xx3.h>
 #include <SoftwareSerial.h>
 
 #define RESET 15
 SoftwareSerial mySerial(4, 5); // RX, TX !! labels on relay board is swapped !!
 
-//create an instance of the rn2483 library,
+//create an instance of the rn2xx3 library,
 //giving the software UART as stream to use,
 //and using LoRa WAN
-rn2483 myLora(mySerial);
+rn2xx3 myLora(mySerial);
 
 // the setup routine runs once when you press reset:
 void setup() {
@@ -59,20 +59,20 @@ void setup() {
 
 void initialize_radio()
 {
-  //reset RN2483
+  //reset RN2xx3
   pinMode(RESET, OUTPUT);
   digitalWrite(RESET, LOW);
   delay(100);
   digitalWrite(RESET, HIGH);
   
-  delay(100); //wait for the RN2483's startup message
+  delay(100); //wait for the RN2xx3's startup message
   mySerial.flush();
 
   //check communication with radio
   String hweui = myLora.hweui();
   while(hweui.length() != 16)
   {
-    Serial.println("Communication with RN2483 unsuccesful. Power cycle the board.");
+    Serial.println("Communication with RN2xx3 unsuccesful. Power cycle the board.");
     Serial.println(hweui);
     delay(10000);
     hweui = myLora.hweui();
@@ -81,7 +81,7 @@ void initialize_radio()
   //print out the HWEUI so that we can register it via ttnctl
   Serial.println("When using OTAA, register this DevEUI: ");
   Serial.println(hweui);
-  Serial.println("RN2483 firmware version:");
+  Serial.println("RN2xx3 firmware version:");
   Serial.println(myLora.sysver());
 
   //configure your keys and join the network
