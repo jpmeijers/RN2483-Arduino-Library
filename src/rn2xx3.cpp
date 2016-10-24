@@ -24,22 +24,10 @@ _serial(serial)
 {
   _serial.setTimeout(2000);
 }
-
-rn2xx3::rn2xx3(SoftwareSerial& serial, Stream& debugSerial):
-_serial(serial),_debugSerial(debugSerial)
-{
-  _serial.setTimeout(2000);
-}
 #endif
 
 rn2xx3::rn2xx3(HardwareSerial& serial):
 _serial(serial)
-{
-  _serial.setTimeout(2000);
-}
-
-rn2xx3::rn2xx3(HardwareSerial& serial, Stream& debugSerial):
-_serial(serial),_debugSerial(debugSerial)
 {
   _serial.setTimeout(2000);
 }
