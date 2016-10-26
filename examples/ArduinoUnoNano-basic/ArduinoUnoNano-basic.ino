@@ -73,8 +73,21 @@ void initialize_radio()
   delay(500);
   digitalWrite(12, HIGH);
 
+  delay(100); //wait for the RN2xx3's startup message
+  mySerial.flush();
+
   //Autobaud the rn2483 module to 9600. The default would otherwise be 57600.
   myLora.autobaud();
+
+  //check communication with radio
+  String hweui = myLora.hweui();
+  while(hweui.length() != 16)
+  {
+    Serial.println("Communication with RN2xx3 unsuccesful. Power cycle the board.");
+    Serial.println(hweui);
+    delay(10000);
+    hweui = myLora.hweui();
+  }
 
   //print out the HWEUI so that we can register it via ttnctl
   Serial.println("When using OTAA, register this DevEUI: ");
