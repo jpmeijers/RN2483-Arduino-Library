@@ -11,9 +11,6 @@
 #define rn2xx3_h
 
 #include "Arduino.h"
-#if defined(ARDUINO_ARCH_AVR) || defined(ESP8266)
- #include <SoftwareSerial.h>
-#endif
 
 enum RN2xx3_t {
   RN_NA = 0, // Not set
@@ -25,21 +22,12 @@ class rn2xx3
 {
   public:
 
-    #ifdef SoftwareSerial_h
     /*
-     * A simplified constructor taking only a SoftwareSerial object.
+     * A simplified constructor taking only a Stream ({Software/Hardwre}Serial) object.
      * It is assumed that LoRa WAN will be used.
      * The serial port should already be initialised when initialising this library.
      */
-      rn2xx3(SoftwareSerial& serial);
-    #endif
-
-    /*
-     * A simplified constructor taking only a HardwareSerial object.
-     * It is assumed that LoRa WAN will be used.
-     * The serial port should already be initialised when initialising this library.
-     */
-    rn2xx3(HardwareSerial& serial);
+    rn2xx3(Stream& serial);
 
     /*
      * Transmit the correct sequence to the rn2483 to trigger its autobauding feature.
