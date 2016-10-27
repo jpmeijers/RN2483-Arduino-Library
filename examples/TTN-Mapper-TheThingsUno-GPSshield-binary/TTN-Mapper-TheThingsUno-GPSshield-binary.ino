@@ -7,7 +7,7 @@
  * the GPS shield is switched to the "Soft. Serial" position.
  *
  * Coordinates from the GPS is packed into a LoRaWan packet using binary 
- * encoding, and then sent out on the air using the TTN UNO's RN2483 module. 
+ * encoding, and then sent out on the air using the TTN UNO's RN2xx3 module. 
  * This happens as fast as possible, while still keeping to the 1% duty cycle 
  * rules enforced by the RN2483's built in LoRaWAN stack. Even though this is 
  * allowed by the radio regulations of the 868MHz band, the fair use policy of 
@@ -37,11 +37,11 @@
  */
 #include "TinyGPS++.h"
 #include <SoftwareSerial.h>
-#include <rn2483.h>
+#include <rn2xx3.h>
 
 SoftwareSerial gpsSerial(8, 9); // RX, TX
 TinyGPSPlus gps;
-rn2483 myLora(Serial1);
+rn2xx3 myLora(Serial1);
 
 unsigned long last_update = 0;
 String toLog;
@@ -61,12 +61,12 @@ void setup() {
   
   Serial.begin(57600); //serial to computer
   gpsSerial.begin(9600); //serial to gps
-  Serial1.begin(57600); //serial to RN2483
+  Serial1.begin(57600); //serial to RN2xx3
 
   while(!Serial); //wait for Serial to be available - remove this line after successful test run
   Serial.println("TTN UNO + GPS shield startup");
 
-  //set up RN2483
+  //set up RN2xx3
   initialize_radio();
   //transmit a startup message
   myLora.tx("TTN Mapper on TTN Uno with GPS");
@@ -80,20 +80,20 @@ void setup() {
 
 void initialize_radio()
 {
-  delay(100); //wait for the RN2483's startup message
+  delay(100); //wait for the RN2xx3's startup message
   Serial1.flush();
   
   //print out the HWEUI so that we can register it via ttnctl
   String hweui = myLora.hweui();
   while(hweui.length() != 16)
   {
-    Serial.println("Communication with RN2483 unsuccesful. Power cycle the TTN UNO board.");
+    Serial.println("Communication with RN2xx3 unsuccesful. Power cycle the TTN UNO board.");
     delay(10000);
     hweui = myLora.hweui();
   }
   Serial.println("When using OTAA, register this DevEUI: ");
   Serial.println(hweui);
-  Serial.println("RN2483 firmware version:");
+  Serial.println("RN2xx3 firmware version:");
   Serial.println(myLora.sysver());
 
   //configure your keys and join the network
