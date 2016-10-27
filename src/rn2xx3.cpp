@@ -16,17 +16,9 @@ extern "C" {
 }
 
 /*
-  @param serial Needs to be an already opened stream to write to and read from.
+  @param serial Needs to be an already opened Stream ({Software/Hardwre}Serial) to write to and read from.
 */
-#ifdef SoftwareSerial_h
-rn2xx3::rn2xx3(SoftwareSerial& serial):
-_serial(serial)
-{
-  _serial.setTimeout(2000);
-}
-#endif
-
-rn2xx3::rn2xx3(HardwareSerial& serial):
+rn2xx3::rn2xx3(Stream& serial):
 _serial(serial)
 {
   _serial.setTimeout(2000);
