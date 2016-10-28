@@ -58,14 +58,12 @@ class rn2xx3
      * This ignores your previous choice to use or not use the LoRa WAN.
      */
     bool initABP(String addr, String AppSKey, String NwkSKey);
-    bool init(String addr, String AppSKey, String NwkSKey);
 
     /*
      * Initialise the RN2483 and join The Things Network using over the air activation.
      * This ignores your previous choice to use or not use the LoRa WAN.
      */
     bool initOTAA(String AppEUI, String AppKey);
-    bool init(String AppEUI, String AppKey);
 
     /*
      * Transmit the provided data. The data is hex-encoded by this library,

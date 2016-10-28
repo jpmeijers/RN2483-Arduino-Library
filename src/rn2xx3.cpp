@@ -82,27 +82,22 @@ String rn2xx3::sysver()
 
 bool rn2xx3::init()
 {
-  if(_appeui=="0")
+  if(_appskey=="0") //appskey variable is set by both OTAA and ABP
   {
     return false;
   }
   else if(_otaa==true)
   {
-    return init(_appeui, _appskey);
+    return initOTAA(_appeui, _appskey);
   }
   else
   {
-    return init(_devAddr, _appskey, _nwkskey);
+    return initABP(_devAddr, _appskey, _nwkskey);
   }
 }
 
 
 bool rn2xx3::initOTAA(String AppEUI, String AppKey)
-{
-  return init(AppEUI, AppKey);
-}
-
-bool rn2xx3::init(String AppEUI, String AppKey)
 {
   _otaa = true;
   _appeui = AppEUI;
@@ -195,11 +190,6 @@ bool rn2xx3::init(String AppEUI, String AppKey)
 }
 
 bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
-{
-  return init(devAddr, AppSKey, NwkSKey);
-}
-
-bool rn2xx3::init(String devAddr, String AppSKey, String NwkSKey)
 {
   _otaa = false;
   _devAddr = devAddr;
