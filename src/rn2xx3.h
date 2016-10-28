@@ -23,8 +23,7 @@ class rn2xx3
   public:
 
     /*
-     * A simplified constructor taking only a Stream ({Software/Hardwre}Serial) object.
-     * It is assumed that LoRa WAN will be used.
+     * A simplified constructor taking only a Stream ({Software/Hardware}Serial) object.
      * The serial port should already be initialised when initialising this library.
      */
     rn2xx3(Stream& serial);
