@@ -37,12 +37,14 @@ String toLog;
 void setup()
 {
     delay(3000);
-    //while (!SerialUSB) {
-        // Wait for USB to connect
-    //}
 
     SerialUSB.begin(57600);
     Serial1.begin(57600);
+
+    // make sure usb serial connection is available,
+    // or after 10s go on anyway for 'headless' use of the
+    // node.
+    while ((!SerialUSB) && (millis() < 10000));
 
     SerialUSB.println("SODAQ LoRaONE TTN Mapper starting");
 

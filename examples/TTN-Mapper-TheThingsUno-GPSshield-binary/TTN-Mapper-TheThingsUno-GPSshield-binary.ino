@@ -63,7 +63,11 @@ void setup() {
   gpsSerial.begin(9600); //serial to gps
   Serial1.begin(57600); //serial to RN2xx3
 
-  while(!Serial); //wait for Serial to be available - remove this line after successful test run
+  // make sure usb serial connection is available,
+  // or after 10s go on anyway for 'headless' use of the
+  // node.
+  while ((!Serial) && (millis() < 10000));
+  
   Serial.println("TTN UNO + GPS shield startup");
 
   //set up RN2xx3

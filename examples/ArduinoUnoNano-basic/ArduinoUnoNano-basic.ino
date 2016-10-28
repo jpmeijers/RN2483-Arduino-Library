@@ -92,7 +92,7 @@ void initialize_radio()
   //print out the HWEUI so that we can register it via ttnctl
   Serial.println("When using OTAA, register this DevEUI: ");
   Serial.println(myLora.hweui());
-  Serial.println("RN2483 firmware version:");
+  Serial.println("RN2xx3 firmware version:");
   Serial.println(myLora.sysver());
 
   //configure your keys and join the network
