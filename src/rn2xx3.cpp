@@ -265,24 +265,24 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
   }
 }
 
-void rn2xx3::tx(String data)
+bool rn2xx3::tx(String data)
 {
-  txUncnf(data); //we are unsure which mode we're in. Better not to wait for acks.
+  return txUncnf(data); //we are unsure which mode we're in. Better not to wait for acks.
 }
 
-void rn2xx3::txCnf(String data)
+bool rn2xx3::txCnf(String data)
 {
-  txData("mac tx cnf 1 ", data, true);
+  return txData("mac tx cnf 1 ", data, true);
 }
 
-void rn2xx3::txUncnf(String data)
+bool rn2xx3::txUncnf(String data)
 {
-  txData("mac tx uncnf 1 ", data, true);
+  return txData("mac tx uncnf 1 ", data, true);
 }
 
-void rn2xx3::txData(String data, bool shouldEncode)
+bool rn2xx3::txData(String data, bool shouldEncode)
 {
-  txData("mac tx uncnf 1 ", data, shouldEncode);
+  return txData("mac tx uncnf 1 ", data, shouldEncode);
 }
 
 bool rn2xx3::txData(String command, String data, bool shouldEncode)

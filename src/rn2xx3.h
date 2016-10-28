@@ -30,8 +30,8 @@ class rn2xx3
     rn2xx3(Stream& serial);
 
     /*
-     * Transmit the correct sequence to the rn2483 to trigger its autobauding feature.
-     * After this operation the rn2483 should communicate at the same baud rate than us.
+     * Transmit the correct sequence to the rn2xx3 to trigger its autobauding feature.
+     * After this operation the rn2xx3 should communicate at the same baud rate than us.
      */
     void autobaud();
 
@@ -44,24 +44,29 @@ class rn2xx3
     String hweui();
 
     /*
-     * Get the RN2483's version number.
+     * Get the RN2xx3's version number.
      */
     String sysver();
 
     /*
-     * Initialise the RN2483 and join the LoRa network (if applicable).
+     * Initialise the RN2xx3 and join the LoRa network (if applicable).
      */
     bool init();
 
     /*
-     * Initialise the RN2483 and join The Things Network using personalization.
-     * This ignores your previous choice to use or not use the LoRa WAN.
+     * Initialise the RN2xx3 and join a network using personalization.
+     *
+     * addr: The device address as a HEX string. Example "0203FFEE"
+     * AppSKey: Application Session Key as a HEX string. Example "8D7FFEF938589D95AAD928C2E2E7E48F"
+     * NwkSKey: Network Session Key as a HEX string. Example "AE17E567AECC8787F749A62F5541D522"
      */
     bool initABP(String addr, String AppSKey, String NwkSKey);
 
     /*
-     * Initialise the RN2483 and join The Things Network using over the air activation.
-     * This ignores your previous choice to use or not use the LoRa WAN.
+     * Initialise the RN2xx3 and join a network using over the air activation.
+     *
+     * AppEUI: Application EUI as a HEX string. Example "70B3D57ED00001A6"
+     * AppKey: Apllication key as a HEX string. Example "A23C96EE13804963F8C2BD6285448198"
      */
     bool initOTAA(String AppEUI, String AppKey);
 
@@ -69,51 +74,62 @@ class rn2xx3
      * Transmit the provided data. The data is hex-encoded by this library,
      * so plain text can be provided.
      * This function is an alias for txUncnf().
+     *
+     * Parameter is an ascii text string.
      */
-    void tx(String);
+    bool tx(String);
 
     /*
      * Do a confirmed transmission via LoRa WAN.
-     * Note: Only use this function if LoRa WAN is used.
+     *
+     * Parameter is an ascii text string.
      */
-    void txCnf(String);
+    bool txCnf(String);
 
     /*
      * Do an unconfirmed transmission via LoRa WAN.
-     * Note: Only use this function if either LoRa WAN or TTN is used.
+     *
+     * Parameter is an ascii text string.
      */
-    void txUncnf(String);
+    bool txUncnf(String);
 
     /*
-     * String the tx command to send - "mac tx cnf 1 " or "mac tx uncnf 1 "
-     * String the data string
-     * bool should the data string be hex encoded or not
+     * Transmit the provided data using the provided command.
+     *
+     * String - the tx command to send 
+                can only be one of "mac tx cnf 1 " or "mac tx uncnf 1 "
+     * String - an ascii text string if bool is true. A HEX string if bool is false.
+     * bool - should the data string be hex encoded or not
      */
     bool txData(String, String, bool);
 
     /*
      * Transmit the provided data as an uncorfirmed message.
-     * bool should the data be HEX encoded or not
+     *
+     * String - an ascii text string if bool is true. A HEX string if bool is false.
+     * bool - should the data string be hex encoded or not
      */
-    void txData(String, bool);
+    bool txData(String, bool);
 
     /*
-     * Change the datarate at which the RN2483 transmits.
+     * Change the datarate at which the RN2xx3 transmits.
      * A value of between 0 and 5 can be specified,
      * as is defined in the LoRaWan specs.
-     * This can be overwritten by the network when using OTAA.
+     * This can be overwritten by the network when using OTAA. 
+     * So to force a datarate, call this function after initOTAA().
      */
     void setDR(int dr);
 
     /*
-     * Put the RN2483 to sleep for a specified timeframe.
-     * The RN2483 accepts values from 100 to 4294967296.
+     * Put the RN2xx3 to sleep for a specified timeframe.
+     * The RN2xx3 accepts values from 100 to 4294967296.
      */
     void sleep(long msec);
 
     /*
-     * Send a raw command to the RN2483 module.
-     * Returns the raw string as received back from the RN2483.
+     * Send a raw command to the RN2xx3 module.
+     * Returns the raw string as received back from the RN2xx3.
+     * If the RN2xx3 replies with multiple line, only the first line will be returned.
      */
     String sendRawCommand(String command);
 
@@ -128,7 +144,7 @@ class rn2xx3
     
     RN2xx3_t _moduleType = RN_NA;
 
-    //Flags to switch code paths. Default is to use WAN (join OTAA)
+    //Flags to switch code paths. Default is to use OTAA.
     bool _otaa = true;
 
     //The default address to use on TTN if no address is defined.
