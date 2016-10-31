@@ -1,5 +1,5 @@
 # RN2483-Arduino-Library
-Arduino C++ code to communicate with a Microchip RN2483 module
+Arduino C++ code to communicate with a Microchip RN2483 and RN2903 module
 
 # Installation
 At the top of this website (https://github.com/jpmeijers/RN2483-Arduino-Library), choose Clone or download -> Download ZIP.
