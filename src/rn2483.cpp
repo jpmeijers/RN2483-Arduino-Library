@@ -230,7 +230,7 @@ void rn2483::tx(String data)
 
 void rn2483::tx(const byte* data, uint8_t size)
 {
-  char msgBuffer[size*2];
+  char msgBuffer[size*2 + 1];
 
   char buffer[3];
   for (unsigned i=0; i<size; i++)

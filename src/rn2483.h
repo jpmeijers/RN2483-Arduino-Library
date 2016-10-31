@@ -77,6 +77,12 @@ class rn2483
      * This function is an alias for txUncnf().
      */
     void tx(String);
+
+    /*
+     * Transmit raw byte encoded data via LoRa WAN.
+     * This method expects a raw byte array as first parameter.
+     * The second parameter is the count of the bytes to send.
+     */
     void tx(const byte*, uint8_t);
 
     /*
