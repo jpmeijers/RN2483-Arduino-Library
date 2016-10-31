@@ -270,7 +270,7 @@ bool rn2xx3::tx(String data)
   return txUncnf(data); //we are unsure which mode we're in. Better not to wait for acks.
 }
 
-void rn2483::tx(const byte* data, uint8_t size)
+bool rn2xx3::txBytes(const byte* data, uint8_t size)
 {
   char msgBuffer[size*2 + 1];
 
@@ -281,25 +281,20 @@ void rn2483::tx(const byte* data, uint8_t size)
     memcpy(&msgBuffer[i*2], &buffer, sizeof(buffer));
   }
   String dataToTx(msgBuffer);
-  txData(dataToTx, false);
+  return txCommand("mac tx uncnf 1 ", dataToTx, false);
 }
 
-void rn2483::txCnf(String data)
+bool rn2xx3::txCnf(String data)
 {
-  return txData("mac tx cnf 1 ", data, true);
+  return txCommand("mac tx cnf 1 ", data, true);
 }
 
 bool rn2xx3::txUncnf(String data)
 {
-  return txData("mac tx uncnf 1 ", data, true);
+  return txCommand("mac tx uncnf 1 ", data, true);
 }
 
-bool rn2xx3::txData(String data, bool shouldEncode)
-{
-  return txData("mac tx uncnf 1 ", data, shouldEncode);
-}
-
-bool rn2xx3::txData(String command, String data, bool shouldEncode)
+bool rn2xx3::txCommand(String command, String data, bool shouldEncode)
 {
   bool send_success = false;
   uint8_t busy_count = 0;

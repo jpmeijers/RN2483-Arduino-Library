@@ -83,7 +83,7 @@ class rn2xx3
      * This method expects a raw byte array as first parameter.
      * The second parameter is the count of the bytes to send.
      */
-    void tx(const byte*, uint8_t);
+    bool txBytes(const byte*, uint8_t);
 
     /*
      * Do a confirmed transmission via LoRa WAN.
@@ -107,15 +107,7 @@ class rn2xx3
      * String - an ascii text string if bool is true. A HEX string if bool is false.
      * bool - should the data string be hex encoded or not
      */
-    bool txData(String, String, bool);
-
-    /*
-     * Transmit the provided data as an uncorfirmed message.
-     *
-     * String - an ascii text string if bool is true. A HEX string if bool is false.
-     * bool - should the data string be hex encoded or not
-     */
-    bool txData(String, bool);
+    bool txCommand(String, String, bool);
 
     /*
      * Change the datarate at which the RN2xx3 transmits.
