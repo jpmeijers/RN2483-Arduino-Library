@@ -270,7 +270,21 @@ bool rn2xx3::tx(String data)
   return txUncnf(data); //we are unsure which mode we're in. Better not to wait for acks.
 }
 
-bool rn2xx3::txCnf(String data)
+void rn2483::tx(const byte* data, uint8_t size)
+{
+  char msgBuffer[size*2 + 1];
+
+  char buffer[3];
+  for (unsigned i=0; i<size; i++)
+  {
+    sprintf(buffer, "%02X", data[i]);
+    memcpy(&msgBuffer[i*2], &buffer, sizeof(buffer));
+  }
+  String dataToTx(msgBuffer);
+  txData(dataToTx, false);
+}
+
+void rn2483::txCnf(String data)
 {
   return txData("mac tx cnf 1 ", data, true);
 }

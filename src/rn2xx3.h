@@ -79,6 +79,13 @@ class rn2xx3
     bool tx(String);
 
     /*
+     * Transmit raw byte encoded data via LoRa WAN.
+     * This method expects a raw byte array as first parameter.
+     * The second parameter is the count of the bytes to send.
+     */
+    void tx(const byte*, uint8_t);
+
+    /*
      * Do a confirmed transmission via LoRa WAN.
      *
      * Parameter is an ascii text string.
