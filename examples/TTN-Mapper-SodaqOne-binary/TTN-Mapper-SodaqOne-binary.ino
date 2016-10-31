@@ -152,7 +152,7 @@ void loop()
 
   SerialUSB.println(toLog);
   digitalWrite(LED_BLUE, LOW);
-  myLora.txBytes(txBuffer, sizeof(txBuffer)); //already encoded data
+  myLora.txBytes(txBuffer, sizeof(txBuffer));
   digitalWrite(LED_BLUE, HIGH);
   SerialUSB.println("TX done");
 }

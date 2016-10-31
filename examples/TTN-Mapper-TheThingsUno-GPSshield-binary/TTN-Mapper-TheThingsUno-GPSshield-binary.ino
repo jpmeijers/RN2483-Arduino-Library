@@ -133,7 +133,7 @@ void loop() {
     build_packet();
 
     Serial.println(toLog);
-    myLora.txData(toLog, false); //already encoded data
+    myLora.txBytes(txBuffer, sizeof(txBuffer));
     Serial.println("TX done");
 
     led_off();
