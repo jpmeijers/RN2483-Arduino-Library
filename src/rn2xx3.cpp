@@ -3,6 +3,7 @@
  *
  * @Author JP Meijers
  * @Author Nicolas Schteinschraber
+ * @Author The Things Network contributors
  * @Date 18/12/2015
  *
  */
@@ -118,9 +119,17 @@ bool rn2xx3::initOTAA(String AppEUI, String AppKey)
   switch (_moduleType) {
     case RN2903:
       _serial.println("mac reset");
+      _serial.readStringUntil('\n');
+      //include the bandplan settings
+      configureTTNUS915();
       break;
     case RN2483:
       _serial.println("mac reset 868");
+      _serial.readStringUntil('\n');
+      _serial.println("mac set rx2 3 869525000");
+      _serial.readStringUntil('\n');
+      //include the bandplan settings
+      configureTTNEU868();
       break;
     default:
       // we shouldn't go forward with the init
@@ -207,12 +216,16 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
     case RN2903:
       _serial.println("mac reset");
       _serial.readStringUntil('\n');
+      //include the bandplan settings
+      configureTTNUS915();
       break;
     case RN2483:
       _serial.println("mac reset 868");
       _serial.readStringUntil('\n');
       _serial.println("mac set rx2 3 869525000");
       _serial.readStringUntil('\n');
+      //include the bandplan settings
+      configureTTNEU868();
       break;
     default:
       // we shouldn't go forward with the init
@@ -544,3 +557,89 @@ RN2xx3_t rn2xx3::moduleType()
 {
   return _moduleType;
 }
+
+void rn2xx3::configureTTNEU868() {
+/*
+  uint8_t ch;
+  int8_t dr = -1;
+  uint32_t freq = 867100000;
+  String str = "";
+
+  str.concat(F("mac set rx2 3 869525000"));
+  sendCommand(str);
+  str = "";
+  for (ch = 0; ch <= 7; ch++) {
+    if (ch >= 3) {
+      str.concat(F("mac set ch freq "));
+      str.concat(ch);
+      str.concat(F(" "));
+      str.concat(freq);
+      sendCommand(str);
+      str = "";
+      str.concat(F("mac set ch drrange "));
+      str.concat(ch);
+      str.concat(F(" 0 5"));
+      sendCommand(str);
+      str = "";
+      str.concat(F("mac set ch status "));
+      str.concat(ch);
+      str.concat(F(" on"));
+      sendCommand(str);
+      str = "";
+      freq = freq + 200000;
+    }
+    str.concat(F("mac set ch dcycle "));
+    str.concat(ch);
+    str.concat(F(" 799"));
+    sendCommand(str);
+    str = "";
+  }
+  str.concat(F("mac set ch drrange 1 0 6"));
+  sendCommand(str);
+  str = "";
+  str.concat(F("mac set pwridx "));
+  str.concat(TTN_PWRIDX_868);
+  sendCommand(str);
+*/
+}
+
+void rn2xx3::configureTTNUS915() {
+/*
+  uint8_t ch;
+  int8_t dr = -1;
+  String str = "";
+  uint8_t chLow = fsb > 0 ? (fsb - 1) * 8 : 0;
+  uint8_t chHigh = fsb > 0 ? chLow + 7 : 71;
+  uint8_t ch500 = fsb + 63;
+
+  sendCommand(F("radio set freq 904200000"));
+  str = "";
+  str.concat(F("mac set pwridx "));
+  str.concat(TTN_PWRIDX_915);
+  sendCommand(str);
+  for (ch = 0; ch < 72; ch++) {
+    str = "";
+    str.concat(F("mac set ch status "));
+    str.concat(ch);
+    if (ch == ch500 || ch <= chHigh && ch >= chLow) {
+      str.concat(F(" on"));
+      sendCommand(str);
+      if (ch < 63) {
+        str = "";
+        str.concat(F("mac set ch drrange "));
+        str.concat(ch);
+        str.concat(F(" 0 3"));
+        sendCommand(str);
+        str = "";
+      }
+    }
+    else {
+      str.concat(F(" off"));
+      sendCommand(str);
+    }
+  }
+*/
+}
+
+
+
