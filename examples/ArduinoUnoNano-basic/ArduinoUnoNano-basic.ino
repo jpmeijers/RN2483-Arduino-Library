@@ -1,6 +1,10 @@
 /*
  * Author: JP Meijers
  * Date: 2016-02-07
+ * Previous filename: TTN-Mapper-TTNEnschede-V1
+ * 
+ * This program is meant to be used with an Arduino UNO or NANO, conencted to an RNxx3 radio module.
+ * It will most likely also work on other compatible Arduino or Arduino compatible boards, like The Things Uno, but might need some slight modifications.
  * 
  * Transmit a one byte packet via TTN. This happens as fast as possible, while still keeping to 
  * the 1% duty cycle rules enforced by the RN2483's built in LoRaWAN stack. Even though this is 
@@ -14,8 +18,8 @@
  * The appropriate line is "myLora.initABP(XXX);" or "myLora.initOTAA(XXX);"
  * When using ABP, it is advised to enable "relax frame count".
  * 
- * Connect the RN2483 as follows:
- * RN2483 -- Arduino
+ * Connect the RN2xx3 as follows:
+ * RN2xx3 -- Arduino
  * Uart TX -- 10
  * Uart RX -- 11
  * Reset -- 12
@@ -23,22 +27,22 @@
  * Gnd -- Gnd
  * 
  * If you use an Arduino with a free hardware serial port, you can replace 
- * the line "rn2483 myLora(mySerial);"
- * with     "rn2483 myLora(SerialX);"
- * where the parameter is the serial port the RN2483 is connected to.
+ * the line "rn2xx3 myLora(mySerial);"
+ * with     "rn2xx3 myLora(SerialX);"
+ * where the parameter is the serial port the RN2xx3 is connected to.
  * Remember that the serial port should be initialised before calling initTTN().
  * For best performance the serial port should be set to 57600 baud, which is impossible with a software serial port.
  * If you use 57600 baud, you can remove the line "myLora.autobaud();".
  * 
  */
-#include <rn2483.h>
+#include <rn2xx3.h>
 #include <SoftwareSerial.h>
 
 SoftwareSerial mySerial(10, 11); // RX, TX
 
-//create an instance of the rn2483 library, 
+//create an instance of the rn2xx3 library, 
 //giving the software serial as port to use
-rn2483 myLora(mySerial);
+rn2xx3 myLora(mySerial);
 
 // the setup routine runs once when you press reset:
 void setup() 
@@ -69,13 +73,26 @@ void initialize_radio()
   delay(500);
   digitalWrite(12, HIGH);
 
+  delay(100); //wait for the RN2xx3's startup message
+  mySerial.flush();
+
   //Autobaud the rn2483 module to 9600. The default would otherwise be 57600.
   myLora.autobaud();
+
+  //check communication with radio
+  String hweui = myLora.hweui();
+  while(hweui.length() != 16)
+  {
+    Serial.println("Communication with RN2xx3 unsuccesful. Power cycle the board.");
+    Serial.println(hweui);
+    delay(10000);
+    hweui = myLora.hweui();
+  }
 
   //print out the HWEUI so that we can register it via ttnctl
   Serial.println("When using OTAA, register this DevEUI: ");
   Serial.println(myLora.hweui());
-  Serial.println("RN2483 firmware version:");
+  Serial.println("RN2xx3 firmware version:");
   Serial.println(myLora.sysver());
 
   //configure your keys and join the network

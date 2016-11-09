@@ -1,6 +1,8 @@
 /*
  * Author: JP Meijers
  * Date: 2016-09-07
+ *
+ * This program is meant to be used on a The Things Uno board.
  * 
  * Transmit a one byte packet via TTN. This happens as fast as possible, 
  * while still keeping to the 1% duty cycle rules enforced by the RN2483's built 
@@ -16,10 +18,10 @@
  * When using ABP, it is advised to enable "relax frame count" on the dashboard.
  * 
  */
-#include <rn2483.h>
+#include <rn2xx3.h>
 
 //create an instance of the rn2483 library, using the given Serial port
-rn2483 myLora(Serial1);
+rn2xx3 myLora(Serial1);
 
 // the setup routine runs once when you press reset:
 void setup() 
@@ -32,7 +34,11 @@ void setup()
   Serial.begin(57600); //serial port to computer
   Serial1.begin(57600); //serial port to radio
 
-  while(!Serial); //wait for Serial to be available - remove this line after successful test run
+  // make sure usb serial connection is available,
+  // or after 10s go on anyway for 'headless' use of the
+  // node.
+  while ((!Serial) && (millis() < 10000));
+  
   Serial.println("Startup");
 
   initialize_radio();
@@ -46,20 +52,20 @@ void setup()
 
 void initialize_radio()
 {
-  delay(100); //wait for the RN2483's startup message
+  delay(100); //wait for the RN2xx3's startup message
   Serial1.flush();
   
   //print out the HWEUI so that we can register it via ttnctl
   String hweui = myLora.hweui();
   while(hweui.length() != 16)
   {
-    Serial.println("Communication with RN2483 unsuccesful. Power cycle the TTN UNO board.");
+    Serial.println("Communication with RN2xx3 unsuccesful. Power cycle the TTN UNO board.");
     delay(10000);
     hweui = myLora.hweui();
   }
   Serial.println("When using OTAA, register this DevEUI: ");
   Serial.println(hweui);
-  Serial.println("RN2483 firmware version:");
+  Serial.println("RN2xx3 firmware version:");
   Serial.println(myLora.sysver());
 
   //configure your keys and join the network

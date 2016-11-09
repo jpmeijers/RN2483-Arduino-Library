@@ -1,13 +1,14 @@
 /*
- * A library for controlling a Microchip RN2483 LoRa radio.
+ * A library for controlling a Microchip rn2xx3 LoRa radio.
  *
  * @Author JP Meijers
+ * @Author Nicolas Schteinschraber
  * @Date 18/12/2015
  *
  */
 
 #include "Arduino.h"
-#include "rn2483.h"
+#include "rn2xx3.h"
 
 extern "C" {
 #include <string.h>
@@ -15,23 +16,15 @@ extern "C" {
 }
 
 /*
-  @param serial Needs to be an already opened stream to write to and read from.
+  @param serial Needs to be an already opened Stream ({Software/Hardwre}Serial) to write to and read from.
 */
-#ifdef SoftwareSerial_h
-rn2483::rn2483(SoftwareSerial& serial):
-_serial(serial)
-{
-  _serial.setTimeout(2000);
-}
-#endif
-
-rn2483::rn2483(HardwareSerial& serial):
+rn2xx3::rn2xx3(Stream& serial):
 _serial(serial)
 {
   _serial.setTimeout(2000);
 }
 
-void rn2483::autobaud()
+void rn2xx3::autobaud()
 {
   String response = "";
   while (response=="")
@@ -45,7 +38,25 @@ void rn2483::autobaud()
   }
 }
 
-String rn2483::hweui()
+
+RN2xx3_t rn2xx3::configureModuleType()
+{
+  String version = sysver();
+  String model = version.substring(2,6);  
+  switch (model.toInt()) {
+    case 2903:
+      _moduleType = RN2903;
+      break;
+    case 2483:
+      _moduleType = RN2483;
+      break;
+    default:
+      _moduleType = RN_NA; 
+      break;
+  }
+  return _moduleType;
+}
+String rn2xx3::hweui()
 {
   delay(100);
   while(_serial.available())
@@ -58,7 +69,7 @@ String rn2483::hweui()
   return addr;
 }
 
-String rn2483::sysver()
+String rn2xx3::sysver()
 {
   delay(100);
   while(_serial.available())
@@ -69,29 +80,24 @@ String rn2483::sysver()
   return ver;
 }
 
-bool rn2483::init()
+bool rn2xx3::init()
 {
-  if(_appeui=="0")
+  if(_appskey=="0") //appskey variable is set by both OTAA and ABP
   {
     return false;
   }
   else if(_otaa==true)
   {
-    return init(_appeui, _appskey);
+    return initOTAA(_appeui, _appskey);
   }
   else
   {
-    return init(_devAddr, _appskey, _nwkskey);
+    return initABP(_devAddr, _appskey, _nwkskey);
   }
 }
 
 
-bool rn2483::initOTAA(String AppEUI, String AppKey)
-{
-  return init(AppEUI, AppKey);
-}
-
-bool rn2483::init(String AppEUI, String AppKey)
+bool rn2xx3::initOTAA(String AppEUI, String AppKey)
 {
   _otaa = true;
   _appeui = AppEUI;
@@ -106,8 +112,20 @@ bool rn2483::init(String AppEUI, String AppKey)
   _serial.println("sys get hweui");
   String addr = _serial.readStringUntil('\n');
   addr.trim();
-  
-  _serial.println("mac reset 868");
+
+  configureModuleType();
+
+  switch (_moduleType) {
+    case RN2903:
+      _serial.println("mac reset");
+      break;
+    case RN2483:
+      _serial.println("mac reset 868");
+      break;
+    default:
+      // we shouldn't go forward with the init
+      return false;
+  }    
   receivedData = _serial.readStringUntil('\n');
 
   _serial.println("mac set appeui "+_appeui);
@@ -120,20 +138,30 @@ bool rn2483::init(String AppEUI, String AppKey)
   {
     _serial.println("mac set deveui "+addr);
   }
-  else 
+  else
   {
     _serial.println("mac set deveui "+_default_deveui);
   }
   receivedData = _serial.readStringUntil('\n');
 
-  _serial.println("mac set pwridx 1");
+  if (_moduleType == RN2903)
+  {
+    _serial.println("mac set pwridx 5");
+  }
+  else
+  {
+    _serial.println("mac set pwridx 1");
+  }
   receivedData = _serial.readStringUntil('\n');
 
   _serial.println("mac set adr off");
   receivedData = _serial.readStringUntil('\n');
 
-  _serial.println("mac set rx2 3 869525000");
-  receivedData = _serial.readStringUntil('\n');
+  if (_moduleType == RN2483)
+  {
+    _serial.println("mac set rx2 3 869525000");
+    receivedData = _serial.readStringUntil('\n');
+  }
 
   _serial.setTimeout(30000);
   _serial.println("mac save");
@@ -161,12 +189,7 @@ bool rn2483::init(String AppEUI, String AppKey)
   return joined;
 }
 
-bool rn2483::initABP(String devAddr, String AppSKey, String NwkSKey)
-{
-  return init(devAddr, AppSKey, NwkSKey);
-}
-
-bool rn2483::init(String devAddr, String AppSKey, String NwkSKey)
+bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
 {
   _otaa = false;
   _devAddr = devAddr;
@@ -177,13 +200,25 @@ bool rn2483::init(String devAddr, String AppSKey, String NwkSKey)
   //clear serial buffer
   while(_serial.available())
     _serial.read();
+
+  configureModuleType();
   
-  _serial.println("mac reset 868");
-  _serial.readStringUntil('\n');
-
-  _serial.println("mac set rx2 3 869525000");
-  _serial.readStringUntil('\n');
-
+  switch (_moduleType) {
+    case RN2903:
+      _serial.println("mac reset");
+      _serial.readStringUntil('\n');
+      break;
+    case RN2483:
+      _serial.println("mac reset 868");
+      _serial.readStringUntil('\n');
+      _serial.println("mac set rx2 3 869525000");
+      _serial.readStringUntil('\n');
+      break;
+    default:
+      // we shouldn't go forward with the init
+      return false;
+  }    
+ 
   _serial.println("mac set nwkskey "+_nwkskey);
   _serial.readStringUntil('\n');
   _serial.println("mac set appskey "+_appskey);
@@ -197,7 +232,14 @@ bool rn2483::init(String devAddr, String AppSKey, String NwkSKey)
   _serial.println("mac set ar off");
   _serial.readStringUntil('\n');
 
-  _serial.println("mac set pwridx 1"); //1=max, 5=min
+  if (_moduleType == RN2903)
+  {
+    _serial.println("mac set pwridx 5");
+  }
+  else
+  {
+    _serial.println("mac set pwridx 1");
+  }
   _serial.readStringUntil('\n');
   _serial.println("mac set dr 5"); //0= min, 7=max
   _serial.readStringUntil('\n');
@@ -208,13 +250,13 @@ bool rn2483::init(String devAddr, String AppSKey, String NwkSKey)
   _serial.println("mac join abp");
   receivedData = _serial.readStringUntil('\n');
   receivedData = _serial.readStringUntil('\n');
-  
+
   _serial.setTimeout(2000);
   delay(1000);
-  
+
   if(receivedData.startsWith("accepted"))
   {
-    return true; 
+    return true;
     //with abp we can always join successfully as long as the keys are valid
   }
   else
@@ -223,31 +265,44 @@ bool rn2483::init(String devAddr, String AppSKey, String NwkSKey)
   }
 }
 
-void rn2483::tx(String data)
+bool rn2xx3::tx(String data)
 {
-  txUncnf(data); //we are unsure which mode we're in. Better not to wait for acks.
+  return txUncnf(data); //we are unsure which mode we're in. Better not to wait for acks.
 }
 
-void rn2483::txCnf(String data)
+bool rn2xx3::txBytes(const byte* data, uint8_t size)
 {
-  txData("mac tx cnf 1 ", data, true);
+  char msgBuffer[size*2 + 1];
+
+  char buffer[3];
+  for (unsigned i=0; i<size; i++)
+  {
+    sprintf(buffer, "%02X", data[i]);
+    memcpy(&msgBuffer[i*2], &buffer, sizeof(buffer));
+  }
+  String dataToTx(msgBuffer);
+  return txCommand("mac tx uncnf 1 ", dataToTx, false);
 }
 
-void rn2483::txUncnf(String data)
+bool rn2xx3::txCnf(String data)
 {
-  txData("mac tx uncnf 1 ", data, true);
+  return txCommand("mac tx cnf 1 ", data, true);
 }
 
-void rn2483::txData(String data, bool shouldEncode)
+bool rn2xx3::txUncnf(String data)
 {
-  txData("mac tx uncnf 1 ", data, shouldEncode);
+  return txCommand("mac tx uncnf 1 ", data, true);
 }
 
-bool rn2483::txData(String command, String data, bool shouldEncode)
+bool rn2xx3::txCommand(String command, String data, bool shouldEncode)
 {
   bool send_success = false;
   uint8_t busy_count = 0;
   uint8_t retry_count = 0;
+
+  //clear serial buffer
+  while(_serial.available())
+    _serial.read();
 
   while(!send_success)
   {
@@ -275,7 +330,7 @@ bool rn2483::txData(String command, String data, bool shouldEncode)
       _serial.setTimeout(30000);
       receivedData = _serial.readStringUntil('\n');
       _serial.setTimeout(2000);
-      
+
       if(receivedData.startsWith("mac_tx_ok"))
       {
         //SUCCESS!!
@@ -286,7 +341,7 @@ bool rn2483::txData(String command, String data, bool shouldEncode)
       else if(receivedData.startsWith("mac_rx"))
       {
         //we received data downstream
-        //TODO: handle received data - 
+        //TODO: handle received data -
         // this can be done by returning a struct containing:
         // 1. a boolean for confirmed message acks'
         // 2. a boolean for received data
@@ -391,7 +446,7 @@ bool rn2483::txData(String command, String data, bool shouldEncode)
   return false; //should never reach this
 }
 
-void rn2483::sendEncoded(String input)
+void rn2xx3::sendEncoded(String input)
 {
   char working;
   char buffer[3];
@@ -403,20 +458,20 @@ void rn2483::sendEncoded(String input)
   }
 }
 
-String rn2483::base16encode(String input)
+String rn2xx3::base16encode(String input)
 {
   char charsOut[input.length()*2+1];
   char charsIn[input.length()+1];
   input.trim();
   input.toCharArray(charsIn, input.length()+1);
-  
+
   unsigned i = 0;
   for(i = 0; i<input.length()+1; i++)
   {
     if(charsIn[i] == '\0') break;
-    
+
     int value = int(charsIn[i]);
-    
+
     char buffer[3];
     sprintf(buffer, "%02x", value);
     charsOut[2*i] = buffer[0];
@@ -427,24 +482,24 @@ String rn2483::base16encode(String input)
   return toReturn;
 }
 
-String rn2483::base16decode(String input)
+String rn2xx3::base16decode(String input)
 {
   char charsIn[input.length()+1];
   char charsOut[input.length()/2+1];
   input.trim();
   input.toCharArray(charsIn, input.length()+1);
-  
+
   unsigned i = 0;
   for(i = 0; i<input.length()/2+1; i++)
   {
     if(charsIn[i*2] == '\0') break;
     if(charsIn[i*2+1] == '\0') break;
-    
+
     char toDo[2];
     toDo[0] = charsIn[i*2];
     toDo[1] = charsIn[i*2+1];
     int out = strtoul(toDo, 0, 16);
-    
+
     if(out<128)
     {
       charsOut[i] = char(out);
@@ -454,7 +509,7 @@ String rn2483::base16decode(String input)
   return charsOut;
 }
 
-void rn2483::setDR(int dr)
+void rn2xx3::setDR(int dr)
 {
   if(dr>=0 && dr<=5)
   {
@@ -467,7 +522,14 @@ void rn2483::setDR(int dr)
   }
 }
 
-String rn2483::sendRawCommand(String command)
+void rn2xx3::sleep(long msec)
+{
+  _serial.print("sys sleep ");
+  _serial.println(msec);
+}
+
+
+String rn2xx3::sendRawCommand(String command)
 {
   delay(100);
   while(_serial.available())
@@ -476,4 +538,9 @@ String rn2483::sendRawCommand(String command)
   String ret = _serial.readStringUntil('\n');
   ret.trim();
   return ret;
+}
+
+RN2xx3_t rn2xx3::moduleType()
+{
+  return _moduleType;
 }
