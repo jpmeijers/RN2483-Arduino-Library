@@ -19,6 +19,8 @@ enum RN2xx3_t {
   RN2483 = 2483
 };
 
+
+
 class rn2xx3
 {
   public:
@@ -103,7 +105,7 @@ class rn2xx3
     /*
      * Transmit the provided data using the provided command.
      *
-     * String - the tx command to send 
+     * String - the tx command to send
                 can only be one of "mac tx cnf 1 " or "mac tx uncnf 1 "
      * String - an ascii text string if bool is true. A HEX string if bool is false.
      * bool - should the data string be hex encoded or not
@@ -114,7 +116,7 @@ class rn2xx3
      * Change the datarate at which the RN2xx3 transmits.
      * A value of between 0 and 5 can be specified,
      * as is defined in the LoRaWan specs.
-     * This can be overwritten by the network when using OTAA. 
+     * This can be overwritten by the network when using OTAA.
      * So to force a datarate, call this function after initOTAA().
      */
     void setDR(int dr);
@@ -140,7 +142,7 @@ class rn2xx3
 
   private:
     Stream& _serial;
-    
+
     RN2xx3_t _moduleType = RN_NA;
 
     //Flags to switch code paths. Default is to use OTAA.
@@ -171,7 +173,7 @@ class rn2xx3
     void sendEncoded(String);
     String base16encode(String);
     String base16decode(String);
-    
+
     //bandplan functions from The Things Network library
     void configureTTNEU868();
     void configureTTNUS915();

@@ -43,7 +43,7 @@ void rn2xx3::autobaud()
 RN2xx3_t rn2xx3::configureModuleType()
 {
   String version = sysver();
-  String model = version.substring(2,6);  
+  String model = version.substring(2,6);
   switch (model.toInt()) {
     case 2903:
       _moduleType = RN2903;
@@ -52,7 +52,7 @@ RN2xx3_t rn2xx3::configureModuleType()
       _moduleType = RN2483;
       break;
     default:
-      _moduleType = RN_NA; 
+      _moduleType = RN_NA;
       break;
   }
   return _moduleType;
@@ -134,7 +134,7 @@ bool rn2xx3::initOTAA(String AppEUI, String AppKey)
     default:
       // we shouldn't go forward with the init
       return false;
-  }    
+  }
   receivedData = _serial.readStringUntil('\n');
 
   _serial.println("mac set appeui "+_appeui);
@@ -211,7 +211,7 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
     _serial.read();
 
   configureModuleType();
-  
+
   switch (_moduleType) {
     case RN2903:
       _serial.println("mac reset");
@@ -230,8 +230,8 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
     default:
       // we shouldn't go forward with the init
       return false;
-  }    
- 
+  }
+
   _serial.println("mac set nwkskey "+_nwkskey);
   _serial.readStringUntil('\n');
   _serial.println("mac set appskey "+_appskey);
@@ -559,14 +559,14 @@ RN2xx3_t rn2xx3::moduleType()
 }
 
 void rn2xx3::configureTTNEU868() {
-/*
+
   uint8_t ch;
   int8_t dr = -1;
   uint32_t freq = 867100000;
   String str = "";
 
   str.concat(F("mac set rx2 3 869525000"));
-  sendCommand(str);
+  sendRawCommand(str);
   str = "";
   for (ch = 0; ch <= 7; ch++) {
     if (ch >= 3) {
@@ -574,33 +574,32 @@ void rn2xx3::configureTTNEU868() {
       str.concat(ch);
       str.concat(F(" "));
       str.concat(freq);
-      sendCommand(str);
+      sendRawCommand(str);
+
       str = "";
       str.concat(F("mac set ch drrange "));
       str.concat(ch);
       str.concat(F(" 0 5"));
-      sendCommand(str);
+      sendRawCommand(str);
+
       str = "";
       str.concat(F("mac set ch status "));
       str.concat(ch);
       str.concat(F(" on"));
-      sendCommand(str);
+      sendRawCommand(str);
       str = "";
       freq = freq + 200000;
     }
     str.concat(F("mac set ch dcycle "));
     str.concat(ch);
     str.concat(F(" 799"));
-    sendCommand(str);
+    sendRawCommand(str);
     str = "";
   }
   str.concat(F("mac set ch drrange 1 0 6"));
-  sendCommand(str);
-  str = "";
-  str.concat(F("mac set pwridx "));
-  str.concat(TTN_PWRIDX_868);
-  sendCommand(str);
-*/
+  sendRawCommand(str);
+
+
 }
 
 void rn2xx3::configureTTNUS915() {
@@ -640,6 +639,3 @@ void rn2xx3::configureTTNUS915() {
   }
 */
 }
-
-
-
