@@ -3,6 +3,7 @@
  *
  * @Author JP Meijers
  * @Author Nicolas Schteinschraber
+ * @Author The Things Network contributors
  * @Date 18/12/2015
  *
  */
@@ -170,6 +171,10 @@ class rn2xx3
     void sendEncoded(String);
     String base16encode(String);
     String base16decode(String);
+    
+    //bandplan functions from The Things Network library
+    void configureTTNEU868();
+    void configureTTNUS915();
 };
 
 #endif
