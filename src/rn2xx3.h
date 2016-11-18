@@ -18,6 +18,12 @@ enum RN2xx3_t {
   RN2483 = 2483
 };
 
+enum FREQ_PLAN {
+  SINGLE_CHANNEL_EU,
+  TTN_EU,
+  DEFAULT_EU
+};
+
 class rn2xx3
 {
   public:
@@ -136,6 +142,11 @@ class rn2xx3
      * Returns the module type either RN2903 or RN2483, or NA.
      */
     RN2xx3_t moduleType();
+    
+    /*
+     * Set the active channels to use.
+     */
+    void setFrequencyPlan(FREQ_PLAN);
 
   private:
     Stream& _serial;

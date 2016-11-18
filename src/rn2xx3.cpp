@@ -544,3 +544,26 @@ RN2xx3_t rn2xx3::moduleType()
 {
   return _moduleType;
 }
+
+void rn2xx3::setFrequencyPlan(FREQ_PLAN fp)
+{
+  switch (fp)
+  {
+    case SINGLE_CHANNEL_EU:
+      //mac set rx2 <dataRate> <frequency>
+      //sendRawCommand(F("mac set rx2 5 868100000")); //use this for "strict" one channel gateways
+      sendRawCommand(F("mac set rx2 3 869525000")); //use for "non-strict" one channel gateways
+      sendRawCommand(F("mac set ch dcycle 0 50")); //1% duty cycle for this channel
+      sendRawCommand(F("mac set ch dcycle 1 65535")); //almost never use this channel
+      sendRawCommand(F("mac set ch dcycle 2 65535")); //almost never use this channel
+      break;
+      
+    case TTN_EU:
+      break;
+      
+    case DEFAULT_EU:
+    default:
+      //set 868.1, 868.3 and 868.5
+      break;
+  }
+}
