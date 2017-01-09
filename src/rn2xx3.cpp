@@ -16,7 +16,7 @@ extern "C" {
 }
 
 /*
-  @param serial Needs to be an already opened Stream ({Software/Hardwre}Serial) to write to and read from.
+  @param serial Needs to be an already opened Stream ({Software/Hardware}Serial) to write to and read from.
 */
 rn2xx3::rn2xx3(Stream& serial):
 _serial(serial)
@@ -42,7 +42,7 @@ void rn2xx3::autobaud()
 RN2xx3_t rn2xx3::configureModuleType()
 {
   String version = sysver();
-  String model = version.substring(2,6);  
+  String model = version.substring(2,6);
   switch (model.toInt()) {
     case 2903:
       _moduleType = RN2903;
@@ -51,7 +51,7 @@ RN2xx3_t rn2xx3::configureModuleType()
       _moduleType = RN2483;
       break;
     default:
-      _moduleType = RN_NA; 
+      _moduleType = RN_NA;
       break;
   }
   return _moduleType;
@@ -125,7 +125,7 @@ bool rn2xx3::initOTAA(String AppEUI, String AppKey)
     default:
       // we shouldn't go forward with the init
       return false;
-  }    
+  }
   receivedData = _serial.readStringUntil('\n');
 
   _serial.println("mac set appeui "+_appeui);
@@ -202,7 +202,7 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
     _serial.read();
 
   configureModuleType();
-  
+
   switch (_moduleType) {
     case RN2903:
       _serial.println("mac reset");
@@ -217,8 +217,8 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
     default:
       // we shouldn't go forward with the init
       return false;
-  }    
- 
+  }
+
   _serial.println("mac set nwkskey "+_nwkskey);
   _serial.readStringUntil('\n');
   _serial.println("mac set appskey "+_appskey);
@@ -557,10 +557,10 @@ void rn2xx3::setFrequencyPlan(FREQ_PLAN fp)
       sendRawCommand(F("mac set ch dcycle 1 65535")); //almost never use this channel
       sendRawCommand(F("mac set ch dcycle 2 65535")); //almost never use this channel
       break;
-      
+
     case TTN_EU:
       break;
-      
+
     case DEFAULT_EU:
     default:
       //set 868.1, 868.3 and 868.5
