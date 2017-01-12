@@ -97,7 +97,7 @@ void initialize_radio()
   join_result = myLora.initABP("02017201", "8D7FFEF938589D95AAD928C2E2E7E48F", "AE17E567AECC8787F749A62F5541D522");
 
   //OTAA: initOTAA(String AppEUI, String AppKey);
-  //join_result = myLora.initOTAA("70B3D57EF0001F39", "55D517528FD26BA78E65D5E934BF4F8A");
+  //join_result = myLora.initOTAA("70B3D57ED00001A6", "A23C96EE13804963F8C2BD6285448198");
 
   while(!join_result)
   {
