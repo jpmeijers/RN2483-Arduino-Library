@@ -1,39 +1,39 @@
 /*
  * Author: JP Meijers
  * Date: 2016-09-07
- * 
- * This example program is meant for a The Things UNO board with an 
- * "Adafruit Ultimate GPS+Logging Shield" on top of it. Make sure the switch on 
+ *
+ * This example program is meant for a The Things UNO board with an
+ * "Adafruit Ultimate GPS+Logging Shield" on top of it. Make sure the switch on
  * the GPS shield is switched to the "Soft. Serial" position.
  *
- * Coordinates from the GPS is packed into a LoRaWan packet using binary 
- * encoding, and then sent out on the air using the TTN UNO's RN2xx3 module. 
- * This happens as fast as possible, while still keeping to the 1% duty cycle 
- * rules enforced by the RN2483's built in LoRaWAN stack. Even though this is 
- * allowed by the radio regulations of the 868MHz band, the fair use policy of 
+ * Coordinates from the GPS is packed into a LoRaWan packet using binary
+ * encoding, and then sent out on the air using the TTN UNO's RN2xx3 module.
+ * This happens as fast as possible, while still keeping to the 1% duty cycle
+ * rules enforced by the RN2483's built in LoRaWAN stack. Even though this is
+ * allowed by the radio regulations of the 868MHz band, the fair use policy of
  * TTN may prohibit this.
- * 
+ *
  * CHECK THE RULES BEFORE USING THIS PROGRAM!
- * 
+ *
  * CHANGE ADDRESS!
- * Change the device address, network (session) key, and app (session) key to 
+ * Change the device address, network (session) key, and app (session) key to
  * the values that are registered via the TTN dashboard.
  * The appropriate line is "myLora.initABP(XXX);" or "myLora.initOTAA(XXX);"
  * When using ABP, it is advised to enable "relax frame count" on the dashboard.
  *
  * TO CONTRIBUTE TO TTN Mapper:
- * 1. Register a new Application and/or new device on the 
+ * 1. Register a new Application and/or new device on the
  *     TTN Dashboard (https://staging.thethingsnetwork.org).
- * 2. Copy the correct keys into the line "myLora.initABP(XXX);" 
+ * 2. Copy the correct keys into the line "myLora.initABP(XXX);"
  *     or "myLora.initOTAA(XXX);" in this program.
- * 3. Comment out or remove the line: "while(!Serial); //wait for Serial to 
+ * 3. Comment out or remove the line: "while(!Serial); //wait for Serial to
        be available - remove this line after successful test run"
- * 4. Make sure packets are arriving on the TTN Dashboard when your node is 
+ * 4. Make sure packets are arriving on the TTN Dashboard when your node is
  *     powered and in reach of a gateway.
  * 5. Share your Application EUI, Access Key and Device EUI with
  *     contribute@ttnmapper.org so that your measurements can be automatically
  *     imported into TTN Mapper.
- * 
+ *
  */
 #include "TinyGPS++.h"
 #include <SoftwareSerial.h>
@@ -58,7 +58,7 @@ void setup() {
   //output LED pin
   pinMode(13, OUTPUT);
   led_on();
-  
+
   Serial.begin(57600); //serial to computer
   gpsSerial.begin(9600); //serial to gps
   Serial1.begin(57600); //serial to RN2xx3
@@ -67,7 +67,7 @@ void setup() {
   // or after 10s go on anyway for 'headless' use of the
   // node.
   while ((!Serial) && (millis() < 10000));
-  
+
   Serial.println("TTN UNO + GPS shield startup");
 
   //set up RN2xx3
@@ -86,12 +86,12 @@ void initialize_radio()
 {
   delay(100); //wait for the RN2xx3's startup message
   Serial1.flush();
-  
+
   //print out the HWEUI so that we can register it via ttnctl
   String hweui = myLora.hweui();
   while(hweui.length() != 16)
   {
-    Serial.println("Communication with RN2xx3 unsuccesful. Power cycle the TTN UNO board.");
+    Serial.println("Communication with RN2xx3 unsuccessful. Power cycle the TTN UNO board.");
     delay(10000);
     hweui = myLora.hweui();
   }
@@ -103,10 +103,10 @@ void initialize_radio()
   //configure your keys and join the network
   Serial.println("Trying to join TTN");
   bool join_result = false;
-  
+
   //ABP: initABP(String addr, String AppSKey, String NwkSKey);
   join_result = myLora.initABP("02017201", "8D7FFEF938589D95AAD928C2E2E7E48F", "AE17E567AECC8787F749A62F5541D522");
-  
+
   //OTAA: initOTAA(String AppEUI, String AppKey);
   //join_result = myLora.initOTAA("70B3D57ED00001A6", "A23C96EE13804963F8C2BD6285448198");
 
@@ -117,14 +117,14 @@ void initialize_radio()
     join_result = myLora.init();
   }
   Serial.println("Successfully joined TTN");
-  
+
 }
 
 void loop() {
   while (gpsSerial.available()){
     gps.encode(gpsSerial.read());
   }
-  
+
   if (gps.location.age() < 1000 && (millis() - last_update) >= 1000) {
     led_on();
     Serial.print("Interval: ");
@@ -151,11 +151,11 @@ void build_packet()
   txBuffer[0] = ( LatitudeBinary >> 16 ) & 0xFF;
   txBuffer[1] = ( LatitudeBinary >> 8 ) & 0xFF;
   txBuffer[2] = LatitudeBinary & 0xFF;
-  
+
   txBuffer[3] = ( LongitudeBinary >> 16 ) & 0xFF;
   txBuffer[4] = ( LongitudeBinary >> 8 ) & 0xFF;
   txBuffer[5] = LongitudeBinary & 0xFF;
-  
+
   altitudeGps = gps.altitude.meters();
   txBuffer[6] = ( altitudeGps >> 8 ) & 0xFF;
   txBuffer[7] = altitudeGps & 0xFF;

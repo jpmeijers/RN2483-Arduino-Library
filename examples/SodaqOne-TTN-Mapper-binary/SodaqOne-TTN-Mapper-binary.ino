@@ -57,8 +57,8 @@ void setup()
     //transmit a startup message
     myLora.tx("TTN Mapper on Sodaq One");
 
-    // initialize GPS with enable on pin 27
-    sodaq_gps.init(27);
+    // initialize GPS
+    sodaq_gps.init(GPS_ENABLE);
 
     // myLora.setDR(0); //set the datarate at which we measure. DR7 is the best.
     pinMode(LED_BLUE, OUTPUT);
@@ -80,7 +80,7 @@ void initialize_radio()
   String hweui = myLora.hweui();
   while(hweui.length() != 16)
   {
-    SerialUSB.println("Communication with RN2xx3 unsuccesful. Power cycle the Sodaq One board.");
+    SerialUSB.println("Communication with RN2xx3 unsuccessful. Power cycle the Sodaq One board.");
     delay(10000);
     hweui = myLora.hweui();
   }
@@ -97,7 +97,7 @@ void initialize_radio()
   join_result = myLora.initABP("02017201", "8D7FFEF938589D95AAD928C2E2E7E48F", "AE17E567AECC8787F749A62F5541D522");
 
   //OTAA: initOTAA(String AppEUI, String AppKey);
-  //join_result = myLora.initOTAA("70B3D57ED00001A6", "A23C96EE13804963F8C2BD6285448198");
+  //join_result = myLora.initOTAA("70B3D57EF0001F39", "55D517528FD26BA78E65D5E934BF4F8A");
 
   while(!join_result)
   {
