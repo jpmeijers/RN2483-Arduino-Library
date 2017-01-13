@@ -1,16 +1,16 @@
 /*
  * Author: JP Meijers
  * Date: 2016-11-15
- * 
+ *
  * Transmit GPS coordinates and Accelerometer data via LoRaWAN.
- * 
+ *
  * This sketch assumes you are using the Sodaq One V4 node in its original configuration.
- * 
+ *
  * LED indicators:
  * Blue: Busy transmitting a packet
  * Green waiting for a new GPS fix
  * Red: Sampling accelerometer
- * 
+ *
  */
 
 #include <Wire.h>
@@ -32,7 +32,7 @@ int16_t max_z = 0;
 LSM303 lsm303;
 rn2xx3 myLora(Serial1);
 
-/** 
+/**
  *  FROM Sodaq universal tracker:
  * Initializes the LSM303 or puts it in power-down mode.
  */
@@ -45,10 +45,10 @@ void setLsm303Active(bool on)
         }
 
         lsm303.enableDefault();
-        // lsm303.writeReg(LSM303::CTRL5, lsm303.readReg(LSM303::CTRL5) | 0b10001000); // enable temp and 12.5Hz ODR 
+        // lsm303.writeReg(LSM303::CTRL5, lsm303.readReg(LSM303::CTRL5) | 0b10001000); // enable temp and 12.5Hz ODR
         lsm303.writeReg(LSM303::CTRL1, 0b01110111); // 100Hz sampling rate, BDU on, all axes on
         lsm303.writeReg(LSM303::CTRL2, 0b11011000); // 50Hz anti-aliasing filter, +-8g scale
-        
+
         delay(100);
     }
     else {
@@ -69,12 +69,12 @@ void initialize_radio()
   while(Serial1.available()){
     Serial1.read();
   }
-  
+
   //print out the HWEUI so that we can register it via ttnctl
   String hweui = myLora.hweui();
   while(hweui.length() != 16)
   {
-    SerialUSB.println("Communication with RN2xx3 unsuccesful. Power cycle the Sodaq One board.");
+    SerialUSB.println("Communication with RN2xx3 unsuccessful. Power cycle the Sodaq One board.");
     delay(10000);
     hweui = myLora.hweui();
   }
@@ -86,10 +86,10 @@ void initialize_radio()
   //configure your keys and join the network
   SerialUSB.println("Trying to join LoRaWAN network");
   bool join_result = false;
-  
+
   //ABP: initABP(String addr, String AppSKey, String NwkSKey);
   //join_result = myLora.initABP("02017201", "8D7FFEF938589D95AAD928C2E2E7E48F", "AE17E567AECC8787F749A62F5541D522");
-  
+
   //OTAA: initOTAA(String AppEUI, String AppKey);
   join_result = myLora.initOTAA("1122334455667788", "11111111111111111111111111111111");
 
@@ -100,7 +100,7 @@ void initialize_radio()
     join_result = myLora.init();
   }
   SerialUSB.println("Successfully joined LoRaWAN network");
-  
+
 }
 
 // https://developer.mbed.org/questions/4552/Get-timestamp-via-GPS/
@@ -108,21 +108,21 @@ unsigned long unixTimestamp(int year, int month, int day,
               int hour, int min, int sec)
 {
   const short days_since_beginning_of_year[12] = {0,31,59,90,120,151,181,212,243,273,304,334};
- 
+
   int leap_years = ((year-1)-1968)/4
                   - ((year-1)-1900)/100
                   + ((year-1)-1600)/400;
- 
+
   long days_since_1970 = (year-1970)*365 + leap_years
                       + days_since_beginning_of_year[month-1] + day-1;
- 
+
   if ( (month>2) && (year%4==0 && (year%100!=0 || year%400==0)) )
     days_since_1970 += 1; /* +leap day, if year is a leap year */
- 
+
   return sec + 60 * ( min + 60 * (hour + 24*days_since_1970) );
 }
 
-void setup() 
+void setup()
 {
   delay(5000);
   Wire.begin();
@@ -131,15 +131,15 @@ void setup()
   Serial1.begin(57600);
 
   SerialUSB.println("Testing Accelerometer");
-  
+
   initialize_radio();
   myLora.tx("Sodaq One Accelerometer");
   //myLora.setDR(0);
-  
+
   setLsm303Active(true);
-  
-  // initialize GPS with enable on pin 27
-  sodaq_gps.init(27);
+
+  // initialize GPS
+  sodaq_gps.init(GPS_ENABLE);
 
   // myLora.setDR(0); //set the datarate at which we tx. DR5 is the best.
   pinMode(LED_BLUE, OUTPUT);
@@ -161,8 +161,8 @@ void loop()
   uint32_t timestamp = unixTimestamp(sodaq_gps.getYear(), sodaq_gps.getMonth(), sodaq_gps.getDay(),
               sodaq_gps.getHour(), sodaq_gps.getMinute(), sodaq_gps.getSecond());
   digitalWrite(LED_GREEN, HIGH);
-  
-  
+
+
   //read accelerometer for 2 seconds
   digitalWrite(LED_RED, LOW);
   unsigned long startTime = millis();
@@ -224,11 +224,11 @@ void loop()
   //max_x=2,
   txBuffer[10] = ( max_x >> 8 ) & 0xFF;
   txBuffer[11] = max_x & 0xFF;
-  
+
   //max_y=2,
   txBuffer[12] = ( max_y >> 8 ) & 0xFF;
   txBuffer[13] = max_y & 0xFF;
-  
+
   //max_z=2,
   txBuffer[14] = ( max_z >> 8 ) & 0xFF;
   txBuffer[15] = max_z & 0xFF;
@@ -236,7 +236,7 @@ void loop()
   digitalWrite(LED_BLUE, LOW);
   myLora.txBytes(txBuffer, sizeof(txBuffer));
   digitalWrite(LED_BLUE, HIGH);
-  
+
   SerialUSB.println();
   max_x = 0;
   max_y = 0;

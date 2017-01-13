@@ -1,26 +1,26 @@
 /*
  * Author: JP Meijers
  * Date: 2016-09-02
- * 
- * Transmit GPS coordinates via LoRaWAN. This happens as fast as possible, while still keeping to 
- * the 1% duty cycle rules enforced by the RN2483's built in LoRaWAN stack. Even though this is 
+ *
+ * Transmit GPS coordinates via LoRaWAN. This happens as fast as possible, while still keeping to
+ * the 1% duty cycle rules enforced by the RN2483's built in LoRaWAN stack. Even though this is
  * allowed by the radio regulations of the 868MHz band, it can cause unnecessary collisions.
- * 
+ *
  * This sketch assumes you are using the Sodaq One V4 node in its original configuration.
- * 
+ *
  * This program makes use of the Sodaq UBlox library, but with minor changes to include altitude and HDOP.
- * 
+ *
  * LED indicators:
  * Blue: Busy transmitting a packet
  * Green waiting for a new GPS fix
  * Red: GPS fix taking a long time. Try to go outdoors.
- * 
+ *
  */
 #include <Arduino.h>
 #include "Sodaq_UBlox_GPS.h"
 #include <rn2xx3.h>
 
-//create an instance of the rn2xx3 library, 
+//create an instance of the rn2xx3 library,
 //giving Serial1 as stream to use for communication with the radio
 rn2xx3 myLora(Serial1);
 
@@ -40,16 +40,16 @@ void setup()
     SerialUSB.println("SODAQ ONE simple bicycle tracker");
 
     initialize_radio();
-  
+
     // transmit a startup message
     myLora.tx("SODAQ ONE startup");
 
-    // initialize GPS with enable on pin 27
-    sodaq_gps.init(27);
+    // initialize GPS
+    sodaq_gps.init(GPS_ENABLE);
 
-    // Set the datarate/spreading factor at which we commuincate. 
+    // Set the datarate/spreading factor at which we communicate.
     // DR5 is the fastest and best to use. DR0 is the slowest.
-    // myLora.setDR(0); 
+    // myLora.setDR(0);
 
     // LED pins as outputs. HIGH=Off, LOW=On
     pinMode(LED_BLUE, OUTPUT);
@@ -66,12 +66,12 @@ void initialize_radio()
   while(Serial1.available()){
     Serial1.read();
   }
-  
+
   //print out the HWEUI so that we can register it via ttnctl
   String hweui = myLora.hweui();
   while(hweui.length() != 16)
   {
-    SerialUSB.println("Communication with RN2xx3 unsuccesful. Power cycle the Sodaq One board.");
+    SerialUSB.println("Communication with RN2xx3 unsuccessful. Power cycle the Sodaq One board.");
     delay(10000);
     hweui = myLora.hweui();
   }
@@ -83,10 +83,10 @@ void initialize_radio()
   //configure your keys and join the network
   SerialUSB.println("Trying to join LoRaWAN network");
   bool join_result = false;
-  
+
   //ABP: initABP(String addr, String AppSKey, String NwkSKey);
   //join_result = myLora.initABP("02017201", "8D7FFEF938589D95AAD928C2E2E7E48F", "AE17E567AECC8787F749A62F5541D522");
-  
+
   //OTAA: initOTAA(String AppEUI, String AppKey);
   join_result = myLora.initOTAA("1122334455667788", "11111111111111111111111111111111");
 
@@ -97,13 +97,13 @@ void initialize_radio()
     join_result = myLora.init();
   }
   SerialUSB.println("Successfully joined network");
-  
+
 }
 
 void loop()
 {
   SerialUSB.println("Waiting for GPS fix");
-  
+
   digitalWrite(LED_GREEN, LOW);
   sodaq_gps.scan();
   digitalWrite(LED_GREEN, HIGH);
