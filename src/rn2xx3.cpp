@@ -498,6 +498,16 @@ String rn2xx3::base16encode(String input)
   return toReturn;
 }
 
+bool rn2xx3::hasRx() {
+  return _hasRx;
+}
+
+String rn2xx3::getRx() {
+  _hasRx = false;
+  
+  return _rxMessenge; 
+}
+
 String rn2xx3::base16decode(String input)
 {
   char charsIn[input.length()+1];
