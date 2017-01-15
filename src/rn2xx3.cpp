@@ -340,7 +340,7 @@ bool rn2xx3::txCommand(String command, String data, bool shouldEncode)
 
       else if(receivedData.startsWith("mac_rx"))
       {
-	String downlink;
+        String downlink;
 	bool _hasRx;
 	_hasRx = true;
 	bool stop = false;
@@ -460,16 +460,6 @@ bool rn2xx3::txCommand(String command, String data, bool shouldEncode)
   }
 
   return false; //should never reach this
-}
-
-bool rn2xx3::hasRx() {
-  return _hasRx;
-}
-
-String rn2xx3::getRx() {
-  _hasRx = false;
-  
-  return _rxMessenge; 
 }
 
 void rn2xx3::sendEncoded(String input)
