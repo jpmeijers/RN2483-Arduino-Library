@@ -116,6 +116,16 @@ class rn2xx3
     bool txCommand(String, String, bool);
 
     /*
+     * Indicated that we have a downlink
+     */
+     bool hasRx();
+     /*
+      * returns and resets the downlink messenge
+      * 
+      */
+    String getRx();
+     
+    /*
      * Change the datarate at which the RN2xx3 transmits.
      * A value of between 0 and 5 can be specified,
      * as is defined in the LoRaWan specs.
@@ -172,7 +182,11 @@ class rn2xx3
 
     //the appskey to use for LoRa WAN
     String _appskey = "0";
-
+    // indicates if we have a downlink
+    bool _hasRx;
+    // The downlink messenge
+    String _rxMessenge = "";
+   
     /*
      * Auto configure for either RN2903 or RN2483 module
      */

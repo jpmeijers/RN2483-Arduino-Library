@@ -340,12 +340,28 @@ bool rn2xx3::txCommand(String command, String data, bool shouldEncode)
 
       else if(receivedData.startsWith("mac_rx"))
       {
-        //we received data downstream
-        //TODO: handle received data -
-        // this can be done by returning a struct containing:
-        // 1. a boolean for confirmed message acks'
-        // 2. a boolean for received data
-        // 3. a string/char array for the downlink data
+	String downlink;
+	bool _hasRx;
+	_hasRx = true;
+	bool stop = false;
+	int j = 0;
+	for(int i = 7; i < receivedData.length() && !stop; i++) {
+		if(receivedData[i] == ' ') {
+			j = i+1;
+			stop = true;
+		}
+	}
+	if(j == 0) downlink = "";
+	downlink = receivedData.substring(j);
+	_rxMessenge = "";  
+	for(int i = 0; i < downlink.length(); i+=2) {
+		String characters = downlink.substring(j+i,2);
+		int onechar = 0;
+		onechar = (characters[0] - '0') * 16; 
+		onechar = onechar + (characters[1] - '0');      
+		char finalchar = (char) onechar;
+		_rxMessenge = _rxMessenge + finalchar;
+	}        
         send_success = true;
         return true;
       }
@@ -444,6 +460,16 @@ bool rn2xx3::txCommand(String command, String data, bool shouldEncode)
   }
 
   return false; //should never reach this
+}
+
+bool rn2xx3::hasRx() {
+  return _hasRx;
+}
+
+String rn2xx3::getRx() {
+  _hasRx = false;
+  
+  return _rxMessenge; 
 }
 
 void rn2xx3::sendEncoded(String input)
