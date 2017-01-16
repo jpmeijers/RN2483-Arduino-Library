@@ -147,6 +147,15 @@ class rn2xx3
      * Set the active channels to use.
      */
     void setFrequencyPlan(FREQ_PLAN);
+/*
+     * Indicated that we have a downlink
+     */
+     bool hasRx();
+     /*
+      * returns and resets the downlink messenge
+      * 
+      */
+    String getRx();
 
   private:
     Stream& _serial;
@@ -172,6 +181,10 @@ class rn2xx3
 
     //the appskey to use for LoRa WAN
     String _appskey = "0";
+    // indicates if we have a downlink
+    bool _hasRx;
+    // The downlink messenge
+    String _rxMessenge = "";
 
     /*
      * Auto configure for either RN2903 or RN2483 module
