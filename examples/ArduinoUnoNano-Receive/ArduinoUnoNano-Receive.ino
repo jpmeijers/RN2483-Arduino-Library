@@ -1,7 +1,6 @@
 /*
- * Author: JP Meijers
- * Date: 2016-02-07
- * Previous filename: TTN-Mapper-TTNEnschede-V1
+ * Author: Dennis Ruigrok
+ * Date: 2017-01-16
  * 
  * This program is meant to be used with an Arduino UNO or NANO, conencted to an RNxx3 radio module.
  * It will most likely also work on other compatible Arduino or Arduino compatible boards, like The Things Uno, but might need some slight modifications.
@@ -124,7 +123,7 @@ void loop()
     myLora.tx("!"); //one byte, blocking function
     String receive;
     if(myLora.hasRx()) receive = myLora.getRx();
-    
+    Serial.println("Package Received: " + receive);
     led_off();
     delay(200);
 }
