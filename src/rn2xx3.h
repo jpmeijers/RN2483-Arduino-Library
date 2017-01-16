@@ -142,24 +142,40 @@ class rn2xx3
      * Returns the module type either RN2903 or RN2483, or NA.
      */
     RN2xx3_t moduleType();
-    
+
     /*
      * Set the active channels to use.
      */
     void setFrequencyPlan(FREQ_PLAN);
-/*
-     * Indicated that we have a downlink
+
+    /*
+     * Returns true if a downlink message was received after
+     * the previous transmit.
      */
-     bool hasRx();
-     /*
-      * returns and resets the downlink messenge
-      * 
-      */
+    bool hasRx();
+
+    /*
+     * Returns the last downlink message HEX string, and resets
+     * the flag. hasRx() will therefore return false after calling
+     * this function.
+     */
     String getRx();
+
+    /*
+     * Encode an ASCII string to a HEX string as needed when passed
+     * to the RN2xx3 module.
+     */
+    String base16encode(String);
+
+    /*
+     * Decode a HEX string to an ASCII string. Useful to decode a
+     * string received from the RN2xx3.
+     */
+    String base16decode(String);
 
   private:
     Stream& _serial;
-    
+
     RN2xx3_t _moduleType = RN_NA;
 
     //Flags to switch code paths. Default is to use OTAA.
@@ -181,8 +197,10 @@ class rn2xx3
 
     //the appskey to use for LoRa WAN
     String _appskey = "0";
+
     // indicates if we have a downlink
-    bool _hasRx;
+    bool _hasRx = false;
+
     // The downlink messenge
     String _rxMessenge = "";
 
@@ -192,8 +210,6 @@ class rn2xx3
     RN2xx3_t configureModuleType();
 
     void sendEncoded(String);
-    String base16encode(String);
-    String base16decode(String);
 };
 
 #endif

@@ -340,28 +340,9 @@ bool rn2xx3::txCommand(String command, String data, bool shouldEncode)
 
       else if(receivedData.startsWith("mac_rx"))
       {
-        String downlink;
-	bool _hasRx;
-	_hasRx = true;
-	bool stop = false;
-	int j = 0;
-	for(int i = 7; i < receivedData.length() && !stop; i++) {
-		if(receivedData[i] == ' ') {
-			j = i+1;
-			stop = true;
-		}
-	}
-	if(j == 0) downlink = "";
-	downlink = receivedData.substring(j);
-	_rxMessenge = "";  
-	for(int i = 0; i < downlink.length(); i+=2) {
-		String characters = downlink.substring(j+i,2);
-		int onechar = 0;
-		onechar = (characters[0] - '0') * 16; 
-		onechar = onechar + (characters[1] - '0');      
-		char finalchar = (char) onechar;
-		_rxMessenge = _rxMessenge + finalchar;
-	}        
+        //example: mac_rx 1 54657374696E6720313233
+        _hasRx = true;
+        _rxMessenge = receivedData.substring(receivedData.indexOf(' ', 7)+1);
         send_success = true;
         return true;
       }
@@ -504,7 +485,6 @@ bool rn2xx3::hasRx() {
 
 String rn2xx3::getRx() {
   _hasRx = false;
-  
   return _rxMessenge; 
 }
 

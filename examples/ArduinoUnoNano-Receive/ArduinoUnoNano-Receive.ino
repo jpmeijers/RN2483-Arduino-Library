@@ -119,11 +119,15 @@ void loop()
 {
     led_on();
 
-    Serial.println("TXing");
+    Serial.print(".");
     myLora.tx("!"); //one byte, blocking function
-    String receive;
-    if(myLora.hasRx()) receive = myLora.getRx();
-    Serial.println("Package Received: " + receive);
+    String received;
+    if(myLora.hasRx()) 
+    {
+      received = myLora.getRx();
+      Serial.println();
+      Serial.println("Package Received: " + myLora.base16decode(received));
+    }
     led_off();
     delay(200);
 }
