@@ -24,6 +24,12 @@ enum FREQ_PLAN {
   DEFAULT_EU
 };
 
+enum TX_RETURN_TYPE {
+  TX_FAIL = 0, //The transmission failed. In the case of a confirmed message that is not acked, this will be the returned value.
+  TX_SUCCESS = 1, //The transmission was successful. Also the case when a confirmed message was acked.
+  TX_WITH_RX = 2 //A downlink message was received after the transmission. This also implies that a confirmed message is acked.
+};
+
 class rn2xx3
 {
   public:
@@ -82,28 +88,28 @@ class rn2xx3
      *
      * Parameter is an ascii text string.
      */
-    bool tx(String);
+    TX_RETURN_TYPE tx(String);
 
     /*
      * Transmit raw byte encoded data via LoRa WAN.
      * This method expects a raw byte array as first parameter.
      * The second parameter is the count of the bytes to send.
      */
-    bool txBytes(const byte*, uint8_t);
+    TX_RETURN_TYPE txBytes(const byte*, uint8_t);
 
     /*
      * Do a confirmed transmission via LoRa WAN.
      *
      * Parameter is an ascii text string.
      */
-    bool txCnf(String);
+    TX_RETURN_TYPE txCnf(String);
 
     /*
      * Do an unconfirmed transmission via LoRa WAN.
      *
      * Parameter is an ascii text string.
      */
-    bool txUncnf(String);
+    TX_RETURN_TYPE txUncnf(String);
 
     /*
      * Transmit the provided data using the provided command.
@@ -113,7 +119,7 @@ class rn2xx3
      * String - an ascii text string if bool is true. A HEX string if bool is false.
      * bool - should the data string be hex encoded or not
      */
-    bool txCommand(String, String, bool);
+    TX_RETURN_TYPE txCommand(String, String, bool);
 
     /*
      * Change the datarate at which the RN2xx3 transmits.
@@ -149,15 +155,7 @@ class rn2xx3
     void setFrequencyPlan(FREQ_PLAN);
 
     /*
-     * Returns true if a downlink message was received after
-     * the previous transmit.
-     */
-    bool hasRx();
-
-    /*
-     * Returns the last downlink message HEX string, and resets
-     * the flag. hasRx() will therefore return false after calling
-     * this function.
+     * Returns the last downlink message HEX string.
      */
     String getRx();
 
@@ -197,9 +195,6 @@ class rn2xx3
 
     //the appskey to use for LoRa WAN
     String _appskey = "0";
-
-    // indicates if we have a downlink
-    bool _hasRx = false;
 
     // The downlink messenge
     String _rxMessenge = "";

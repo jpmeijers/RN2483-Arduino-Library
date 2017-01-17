@@ -1,13 +1,13 @@
 /*
- * Author: Dennis Ruigrok
+ * Author: Dennis Ruigrok and JP Meijers
  * Date: 2017-01-16
  * 
  * This program is meant to be used with an Arduino UNO or NANO, conencted to an RNxx3 radio module.
- * It will most likely also work on other compatible Arduino or Arduino compatible boards, like The Things Uno, but might need some slight modifications.
+ * It will most likely also work on other compatible Arduino or Arduino compatible boards, 
+ * like The Things Uno, but might need some slight modifications.
  * 
- * Transmit a one byte packet via TTN. This happens as fast as possible, while still keeping to 
- * the 1% duty cycle rules enforced by the RN2483's built in LoRaWAN stack. Even though this is 
- * allowed by the radio regulations of the 868MHz band, the fair use policy of TTN may prohibit this.
+ * Transmit a one byte packet via TTN, using confirmed messages, 
+ * waiting for an acknowledgement or a downlink message.
  * 
  * CHECK THE RULES BEFORE USING THIS PROGRAM!
  * 
@@ -119,17 +119,31 @@ void loop()
 {
     led_on();
 
-    Serial.print(".");
-    myLora.tx("!"); //one byte, blocking function
-    String received;
-    if(myLora.hasRx()) 
+    Serial.print("TXing");
+    myLora.txCnf("!"); //one byte, blocking function
+
+    switch(myLora.txCnf("!")) //one byte, blocking function
     {
-      received = myLora.getRx();
-      Serial.println();
-      Serial.println("Package Received: " + myLora.base16decode(received));
+      case TX_FAIL: 
+        Serial.println("TX unsuccessful or not acknowledged");
+        break;
+
+      case TX_SUCCESS:
+        Serial.println("TX successful and acknowledged");
+        break;
+
+      case TX_WITH_RX:
+        String received = myLora.getRx();
+        received = myLora.base16decode(received);
+        Serial.print("Received downlink: " + received);
+        break;
+
+      default:
+        Serial.println("Unknown response from TX function");
     }
+
     led_off();
-    delay(200);
+    delay(10000);
 }
 
 void led_on()
