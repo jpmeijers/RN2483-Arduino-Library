@@ -24,6 +24,12 @@ enum FREQ_PLAN {
   DEFAULT_EU
 };
 
+enum TX_RETURN_TYPE {
+  TX_FAIL = 0, //The transmission failed. In the case of a confirmed message that is not acked, this will be the returned value.
+  TX_SUCCESS = 1, //The transmission was successful. Also the case when a confirmed message was acked.
+  TX_WITH_RX = 2 //A downlink message was received after the transmission. This also implies that a confirmed message is acked.
+};
+
 class rn2xx3
 {
   public:
@@ -82,28 +88,28 @@ class rn2xx3
      *
      * Parameter is an ascii text string.
      */
-    bool tx(String);
+    TX_RETURN_TYPE tx(String);
 
     /*
      * Transmit raw byte encoded data via LoRa WAN.
      * This method expects a raw byte array as first parameter.
      * The second parameter is the count of the bytes to send.
      */
-    bool txBytes(const byte*, uint8_t);
+    TX_RETURN_TYPE txBytes(const byte*, uint8_t);
 
     /*
      * Do a confirmed transmission via LoRa WAN.
      *
      * Parameter is an ascii text string.
      */
-    bool txCnf(String);
+    TX_RETURN_TYPE txCnf(String);
 
     /*
      * Do an unconfirmed transmission via LoRa WAN.
      *
      * Parameter is an ascii text string.
      */
-    bool txUncnf(String);
+    TX_RETURN_TYPE txUncnf(String);
 
     /*
      * Transmit the provided data using the provided command.
@@ -113,7 +119,7 @@ class rn2xx3
      * String - an ascii text string if bool is true. A HEX string if bool is false.
      * bool - should the data string be hex encoded or not
      */
-    bool txCommand(String, String, bool);
+    TX_RETURN_TYPE txCommand(String, String, bool);
 
     /*
      * Change the datarate at which the RN2xx3 transmits.
@@ -142,15 +148,32 @@ class rn2xx3
      * Returns the module type either RN2903 or RN2483, or NA.
      */
     RN2xx3_t moduleType();
-    
+
     /*
      * Set the active channels to use.
      */
     void setFrequencyPlan(FREQ_PLAN);
 
+    /*
+     * Returns the last downlink message HEX string.
+     */
+    String getRx();
+
+    /*
+     * Encode an ASCII string to a HEX string as needed when passed
+     * to the RN2xx3 module.
+     */
+    String base16encode(String);
+
+    /*
+     * Decode a HEX string to an ASCII string. Useful to decode a
+     * string received from the RN2xx3.
+     */
+    String base16decode(String);
+
   private:
     Stream& _serial;
-    
+
     RN2xx3_t _moduleType = RN_NA;
 
     //Flags to switch code paths. Default is to use OTAA.
@@ -173,14 +196,15 @@ class rn2xx3
     //the appskey to use for LoRa WAN
     String _appskey = "0";
 
+    // The downlink messenge
+    String _rxMessenge = "";
+
     /*
      * Auto configure for either RN2903 or RN2483 module
      */
     RN2xx3_t configureModuleType();
 
     void sendEncoded(String);
-    String base16encode(String);
-    String base16decode(String);
 };
 
 #endif

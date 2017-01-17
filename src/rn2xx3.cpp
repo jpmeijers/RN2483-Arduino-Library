@@ -157,6 +157,12 @@ bool rn2xx3::initOTAA(String AppEUI, String AppKey)
   _serial.println("mac set adr off");
   receivedData = _serial.readStringUntil('\n');
 
+  // Switch off automatic replies, because this library can not
+  // handle more than one mac_rx per tx. See RN2483 datasheet,
+  // 2.4.8.14, page 27 and the scenario on page 19.
+  _serial.println("mac set ar off");
+  _serial.readStringUntil('\n');
+
   if (_moduleType == RN2483)
   {
     _serial.println("mac set rx2 3 869525000");
@@ -229,6 +235,10 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
 
   _serial.println("mac set adr off");
   _serial.readStringUntil('\n');
+
+  // Switch off automatic replies, because this library can not
+  // handle more than one mac_rx per tx. See RN2483 datasheet,
+  // 2.4.8.14, page 27 and the scenario on page 19.
   _serial.println("mac set ar off");
   _serial.readStringUntil('\n');
 
@@ -265,12 +275,12 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
   }
 }
 
-bool rn2xx3::tx(String data)
+TX_RETURN_TYPE rn2xx3::tx(String data)
 {
   return txUncnf(data); //we are unsure which mode we're in. Better not to wait for acks.
 }
 
-bool rn2xx3::txBytes(const byte* data, uint8_t size)
+TX_RETURN_TYPE rn2xx3::txBytes(const byte* data, uint8_t size)
 {
   char msgBuffer[size*2 + 1];
 
@@ -284,17 +294,17 @@ bool rn2xx3::txBytes(const byte* data, uint8_t size)
   return txCommand("mac tx uncnf 1 ", dataToTx, false);
 }
 
-bool rn2xx3::txCnf(String data)
+TX_RETURN_TYPE rn2xx3::txCnf(String data)
 {
   return txCommand("mac tx cnf 1 ", data, true);
 }
 
-bool rn2xx3::txUncnf(String data)
+TX_RETURN_TYPE rn2xx3::txUncnf(String data)
 {
   return txCommand("mac tx uncnf 1 ", data, true);
 }
 
-bool rn2xx3::txCommand(String command, String data, bool shouldEncode)
+TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
 {
   bool send_success = false;
   uint8_t busy_count = 0;
@@ -310,7 +320,7 @@ bool rn2xx3::txCommand(String command, String data, bool shouldEncode)
     retry_count++;
     if(retry_count>10)
     {
-      return false;
+      return TX_FAIL;
     }
 
     _serial.print(command);
@@ -335,19 +345,15 @@ bool rn2xx3::txCommand(String command, String data, bool shouldEncode)
       {
         //SUCCESS!!
         send_success = true;
-        return true;
+        return TX_SUCCESS;
       }
 
       else if(receivedData.startsWith("mac_rx"))
       {
-        //we received data downstream
-        //TODO: handle received data -
-        // this can be done by returning a struct containing:
-        // 1. a boolean for confirmed message acks'
-        // 2. a boolean for received data
-        // 3. a string/char array for the downlink data
+        //example: mac_rx 1 54657374696E6720313233
+        _rxMessenge = receivedData.substring(receivedData.indexOf(' ', 7)+1);
         send_success = true;
-        return true;
+        return TX_WITH_RX;
       }
 
       else if(receivedData.startsWith("mac_err"))
@@ -359,14 +365,14 @@ bool rn2xx3::txCommand(String command, String data, bool shouldEncode)
       {
         //this should never happen if the prototype worked
         send_success = true;
-        return false;
+        return TX_FAIL;
       }
 
       else if(receivedData.startsWith("radio_tx_ok"))
       {
         //SUCCESS!!
         send_success = true;
-        return true;
+        return TX_SUCCESS;
       }
 
       else if(receivedData.startsWith("radio_err"))
@@ -386,7 +392,7 @@ bool rn2xx3::txCommand(String command, String data, bool shouldEncode)
     {
       //should not happen if we typed the commands correctly
       send_success = true;
-      return false;
+      return TX_FAIL;
     }
 
     else if(receivedData.startsWith("not_joined"))
@@ -433,7 +439,7 @@ bool rn2xx3::txCommand(String command, String data, bool shouldEncode)
     {
       //should not happen if the prototype worked
       send_success = true;
-      return false;
+      return TX_FAIL;
     }
 
     else
@@ -443,7 +449,7 @@ bool rn2xx3::txCommand(String command, String data, bool shouldEncode)
     }
   }
 
-  return false; //should never reach this
+  return TX_FAIL; //should never reach this
 }
 
 void rn2xx3::sendEncoded(String input)
@@ -480,6 +486,10 @@ String rn2xx3::base16encode(String input)
   charsOut[2*i] = '\0';
   String toReturn = String(charsOut);
   return toReturn;
+}
+
+String rn2xx3::getRx() {
+  return _rxMessenge; 
 }
 
 String rn2xx3::base16decode(String input)
