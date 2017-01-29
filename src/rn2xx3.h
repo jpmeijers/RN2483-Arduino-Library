@@ -130,12 +130,6 @@ class rn2xx3
      */
     void setDR(int dr);
 
-    /**
-     * Change the spreading factor at which the RN2xx3 transmits.
-     * A value of 7 to 12 are supported
-     */
-    void setSF(int sf);
-
     /*
      * Put the RN2xx3 to sleep for a specified timeframe.
      * The RN2xx3 accepts values from 100 to 4294967296.
