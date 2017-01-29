@@ -114,7 +114,7 @@ class rn2xx3
     /*
      * Transmit the provided data using the provided command.
      *
-     * String - the tx command to send 
+     * String - the tx command to send
                 can only be one of "mac tx cnf 1 " or "mac tx uncnf 1 "
      * String - an ascii text string if bool is true. A HEX string if bool is false.
      * bool - should the data string be hex encoded or not
@@ -125,10 +125,16 @@ class rn2xx3
      * Change the datarate at which the RN2xx3 transmits.
      * A value of between 0 and 5 can be specified,
      * as is defined in the LoRaWan specs.
-     * This can be overwritten by the network when using OTAA. 
+     * This can be overwritten by the network when using OTAA.
      * So to force a datarate, call this function after initOTAA().
      */
     void setDR(int dr);
+
+    /**
+     * Change the spreading factor at which the RN2xx3 transmits.
+     * A value of 7 to 12 are supported
+     */
+    void setSF(int sf);
 
     /*
      * Put the RN2xx3 to sleep for a specified timeframe.

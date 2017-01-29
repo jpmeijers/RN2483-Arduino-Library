@@ -489,7 +489,7 @@ String rn2xx3::base16encode(String input)
 }
 
 String rn2xx3::getRx() {
-  return _rxMessenge; 
+  return _rxMessenge;
 }
 
 String rn2xx3::base16decode(String input)
@@ -528,6 +528,19 @@ void rn2xx3::setDR(int dr)
       _serial.read();
     _serial.print("mac set dr ");
     _serial.println(dr);
+    _serial.readStringUntil('\n');
+  }
+}
+
+void rn2xx3::setSF(int sf)
+{
+  if(sf>=7 && sf<=12)
+  {
+    delay(100);
+    while(_serial.available())
+      _serial.read();
+    _serial.print("mac set sf sf");
+    _serial.println(sf);
     _serial.readStringUntil('\n');
   }
 }
