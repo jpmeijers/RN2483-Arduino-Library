@@ -489,7 +489,7 @@ String rn2xx3::base16encode(String input)
 }
 
 String rn2xx3::getRx() {
-  return _rxMessenge; 
+  return _rxMessenge;
 }
 
 String rn2xx3::base16decode(String input)
