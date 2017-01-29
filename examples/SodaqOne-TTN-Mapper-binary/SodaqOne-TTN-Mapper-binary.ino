@@ -1,3 +1,5 @@
+#include <rn2xx3.h>
+
 /*
  * Author: JP Meijers
  * Date: 2016-09-02
@@ -37,6 +39,7 @@ uint8_t txBuffer[9];
 uint32_t LatitudeBinary, LongitudeBinary;
 uint16_t altitudeGps;
 uint8_t hdopGps;
+int dr = 0;
 
 void setup()
 {
@@ -60,7 +63,6 @@ void setup()
     // initialize GPS
     sodaq_gps.init(GPS_ENABLE);
 
-    // myLora.setDR(0); //set the datarate at which we measure. DR7 is the best.
     pinMode(LED_BLUE, OUTPUT);
     digitalWrite(LED_BLUE, HIGH);
     pinMode(LED_RED, OUTPUT);
@@ -107,6 +109,7 @@ void initialize_radio()
     join_result = myLora.init();
     digitalWrite(LED_BLUE, HIGH);
   }
+
   SerialUSB.println("Successfully joined TTN");
 
 }
@@ -121,6 +124,8 @@ void loop()
 
   while(sodaq_gps.getLat()==0.0)
   {
+    SerialUSB.println("Lattide still 0.0, doing another scan");
+
     digitalWrite(LED_RED, LOW);
     sodaq_gps.scan();
     digitalWrite(LED_RED, HIGH);
@@ -152,9 +157,25 @@ void loop()
     toLog = toLog + String(buffer);
   }
 
+  SerialUSB.print("Transmit on DR");
+  SerialUSB.print(dr);
+  SerialUSB.print(" coordinates ");
+  SerialUSB.print(sodaq_gps.getLat(), 13);
+  SerialUSB.print(" ");
+  SerialUSB.print(sodaq_gps.getLon(), 13);
+  SerialUSB.print(" altitude ");
+  SerialUSB.print(sodaq_gps.getAlt(), 1);
+  SerialUSB.print(" and HDOP ");
+  SerialUSB.print(sodaq_gps.getHDOP(), 2);
+  SerialUSB.print(" hex ");
   SerialUSB.println(toLog);
+
   digitalWrite(LED_BLUE, LOW);
   myLora.txBytes(txBuffer, sizeof(txBuffer));
   digitalWrite(LED_BLUE, HIGH);
+
+  // Cycle between datarate 0 and 5
+  dr = (++dr) % 6;
+  myLora.setDR(dr);
   SerialUSB.println("TX done");
 }
