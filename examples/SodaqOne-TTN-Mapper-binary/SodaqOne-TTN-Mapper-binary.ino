@@ -1,5 +1,3 @@
-#include <rn2xx3.h>
-
 /*
  * Author: JP Meijers
  * Date: 2016-09-02
@@ -124,7 +122,7 @@ void loop()
 
   while(sodaq_gps.getLat()==0.0)
   {
-    SerialUSB.println("Lattide still 0.0, doing another scan");
+    SerialUSB.println("Latitude still 0.0, doing another scan");
 
     digitalWrite(LED_RED, LOW);
     sodaq_gps.scan();
