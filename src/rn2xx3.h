@@ -13,8 +13,16 @@
 #include "Arduino.h"
 
 // Uncomment this line Use this to debug Library
+//#define DEBUG_RN2483
 
 #ifdef DEBUG_RN2483
+  #undef DEBUG_RN2483
+  // Arduino ZERO
+  #if defined (ARDUINO_ARCH_SAMD  )
+    #define DEBUG_RN2483   SerialUSB
+  #else
+    #define DEBUG_RN2483   Serial
+  #endif
 #endif
 
 
