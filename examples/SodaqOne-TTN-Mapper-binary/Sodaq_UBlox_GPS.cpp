@@ -232,7 +232,7 @@ bool Sodaq_UBlox_GPS::parseGPGGA(const String & line)
             _lon = -_lon;
         }
         _seenLatLon = true;
-        
+
         _hdop = getField(line, 8).toFloat();
         if(getField(line, 10) == "M") {
           _alt = getField(line, 9).toFloat();
@@ -286,7 +286,7 @@ bool Sodaq_UBlox_GPS::parseGPRMC(const String & line)
             _lat = -_lat;
         }
         _lon = convertDegMinToDecDeg(getField(line, 5));
-        if (getField(line, 4) == "W") {
+        if (getField(line, 6) == "W") {
             _lon = -_lon;
         }
         _seenLatLon = true;
