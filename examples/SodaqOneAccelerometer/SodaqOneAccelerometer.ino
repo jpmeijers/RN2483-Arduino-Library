@@ -156,7 +156,8 @@ void loop()
   //the timestamp is considered to be the start time of the sampling frame
 
   digitalWrite(LED_GREEN, LOW);
-  sodaq_gps.scan();
+  // Keep the GPS enabled after we do a scan, increases accuracy
+  sodaq_gps.scan(true);
 //  SerialUSB.println(sodaq_gps.getDateTimeString());
   uint32_t timestamp = unixTimestamp(sodaq_gps.getYear(), sodaq_gps.getMonth(), sodaq_gps.getDay(),
               sodaq_gps.getHour(), sodaq_gps.getMinute(), sodaq_gps.getSecond());
