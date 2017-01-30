@@ -58,24 +58,31 @@ RN2xx3_t rn2xx3::configureModuleType()
 }
 String rn2xx3::hweui()
 {
-  delay(100);
-  while(_serial.available())
-  {
-    _serial.read();
-  }
-  _serial.println("sys get hweui");
-  String addr = _serial.readStringUntil('\n');
-  addr.trim();
-  return addr;
+  return (sendRawCommand(F("sys get hweui")));
 }
+
+String rn2xx3::appeui()
+{
+  return ( sendRawCommand(F("mac get appeui") ));
+}
+
+String rn2xx3::appkey()
+{
+  // We can't read back from module, we send the one
+  // we have memorized if it has been set
+  return _appskey;
+}
+
+String rn2xx3::deveui()
+{
+  return (sendRawCommand(F("mac get deveui")));
+}
+
+
 
 String rn2xx3::sysver()
 {
-  delay(100);
-  while(_serial.available())
-    _serial.read();
-  _serial.println("sys get ver");
-  String ver = _serial.readStringUntil('\n');
+  String ver = sendRawCommand(F("sys get ver"));
   ver.trim();
   return ver;
 }
@@ -97,88 +104,98 @@ bool rn2xx3::init()
 }
 
 
-bool rn2xx3::initOTAA(String AppEUI, String AppKey)
+bool rn2xx3::initOTAA(String AppEUI, String AppKey, String DevEUI)
 {
   _otaa = true;
-  _appeui = AppEUI;
   _nwkskey = "0";
-  _appskey = AppKey; //reuse the variable
   String receivedData;
 
   //clear serial buffer
   while(_serial.available())
     _serial.read();
 
-  _serial.println("sys get hweui");
-  String addr = _serial.readStringUntil('\n');
-  addr.trim();
-
   configureModuleType();
 
   switch (_moduleType) {
     case RN2903:
-      _serial.println("mac reset");
-      break;
+      sendRawCommand(F("mac reset"));
+    break;
     case RN2483:
-      _serial.println("mac reset 868");
-      break;
+      sendRawCommand(F("mac reset 868"));
+    break;
     default:
       // we shouldn't go forward with the init
       return false;
   }
-  receivedData = _serial.readStringUntil('\n');
 
-  _serial.println("mac set appeui "+_appeui);
-  receivedData = _serial.readStringUntil('\n');
-
-  _serial.println("mac set appkey "+_appskey);
-  receivedData = _serial.readStringUntil('\n');
-
-  if(addr!="" && addr.length() == 16)
-  {
-    _serial.println("mac set deveui "+addr);
+  // Key not empty, use it
+  if (DevEUI.length() == 16) {
+      _deveui = DevEUI;
+  } else {
+    // If not all keys are empty 
+    // In this case use on stored in RN2xx3 module
+    if (AppEUI!="" && AppKey!="")
+    {
+      String addr = sendRawCommand(F("sys get hweui"));
+      if(addr!="" && addr.length() == 16 )
+      {
+        _deveui = addr;
+      }
+    }
   }
-  else
+
+
+  // Key not empty, use it, else use on stored in RN2xx3 module
+  if ( DevEUI.length() == 16 )
   {
-    _serial.println("mac set deveui "+_default_deveui);
+    sendRawCommand("mac set deveui "+_deveui);
   }
-  receivedData = _serial.readStringUntil('\n');
+
+  // Key not empty, use it, else use on stored in RN2xx3 module
+  if ( AppEUI.length() == 16 )
+  {
+      _appeui = AppEUI;
+      sendRawCommand("mac set appeui "+_appeui);
+  }
+
+  // Key not empty, use it, else use on stored in RN2xx3 module
+  if ( AppKey.length() == 32 )
+  {
+    _appskey = AppKey; //reuse the variable
+    sendRawCommand("mac set appkey "+_appskey);
+  }
 
   if (_moduleType == RN2903)
   {
-    _serial.println("mac set pwridx 5");
+    sendRawCommand("mac set pwridx 5");
   }
   else
   {
-    _serial.println("mac set pwridx 1");
+    sendRawCommand("mac set pwridx 1");
   }
-  receivedData = _serial.readStringUntil('\n');
 
-  _serial.println("mac set adr off");
-  receivedData = _serial.readStringUntil('\n');
+  sendRawCommand("mac set adr off");
 
   // Switch off automatic replies, because this library can not
   // handle more than one mac_rx per tx. See RN2483 datasheet,
   // 2.4.8.14, page 27 and the scenario on page 19.
-  _serial.println("mac set ar off");
-  _serial.readStringUntil('\n');
+  //sendRawCommand("mac set ar off");
 
   if (_moduleType == RN2483)
   {
-    _serial.println("mac set rx2 3 869525000");
-    receivedData = _serial.readStringUntil('\n');
+    sendRawCommand("mac set rx2 3 869525000");
   }
 
+  sendRawCommand("mac save");
+
   _serial.setTimeout(30000);
-  _serial.println("mac save");
-  receivedData = _serial.readStringUntil('\n');
 
   bool joined = false;
 
   for(int i=0; i<2 && !joined; i++)
   {
-    _serial.println("mac join otaa");
-    receivedData = _serial.readStringUntil('\n');
+    sendRawCommand("mac join otaa");
+    // Parse 2nd response
     receivedData = _serial.readStringUntil('\n');
 
     if(receivedData.startsWith("accepted"))
@@ -193,6 +210,38 @@ bool rn2xx3::initOTAA(String AppEUI, String AppKey)
   }
   _serial.setTimeout(2000);
   return joined;
+}
+
+
+bool rn2xx3::initOTAA(uint8_t * AppEUI, uint8_t * AppKey, uint8_t * DevEUI)
+{
+  String app_eui;
+  String dev_eui;
+  String app_key;
+  char buff[3];
+
+  app_eui="";
+  for (uint8_t i=0; i<8; i++)  {
+    sprintf(buff, "%02X", AppEUI[i]);
+    app_eui += String (buff);
+  }
+
+  dev_eui = "0";
+  if (DevEUI) {
+    dev_eui = "";
+    for (uint8_t i=0; i<8; i++)  {
+      sprintf(buff, "%02X", DevEUI[i]);
+      dev_eui += String (buff);
+    }
+  }
+
+  app_key="";
+  for (uint8_t i=0; i<16; i++)  {
+    sprintf(buff, "%02X", AppKey[i]);
+    app_key += String (buff);
+  }
+
+  return initOTAA(app_eui, app_key, dev_eui);
 }
 
 bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
@@ -211,54 +260,40 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
 
   switch (_moduleType) {
     case RN2903:
-      _serial.println("mac reset");
-      _serial.readStringUntil('\n');
+      sendRawCommand("mac reset");
       break;
     case RN2483:
-      _serial.println("mac reset 868");
-      _serial.readStringUntil('\n');
-      _serial.println("mac set rx2 3 869525000");
-      _serial.readStringUntil('\n');
+      sendRawCommand("mac reset 868");
+      sendRawCommand("mac set rx2 3 869525000");
       break;
     default:
       // we shouldn't go forward with the init
       return false;
   }
 
-  _serial.println("mac set nwkskey "+_nwkskey);
-  _serial.readStringUntil('\n');
-  _serial.println("mac set appskey "+_appskey);
-  _serial.readStringUntil('\n');
-
-  _serial.println("mac set devaddr "+_devAddr);
-  _serial.readStringUntil('\n');
-
-  _serial.println("mac set adr off");
-  _serial.readStringUntil('\n');
+  sendRawCommand("mac set nwkskey "+_nwkskey);
+  sendRawCommand("mac set appskey "+_appskey);
+  sendRawCommand("mac set devaddr "+_devAddr);
+  sendRawCommand("mac set adr off");
 
   // Switch off automatic replies, because this library can not
   // handle more than one mac_rx per tx. See RN2483 datasheet,
   // 2.4.8.14, page 27 and the scenario on page 19.
-  _serial.println("mac set ar off");
-  _serial.readStringUntil('\n');
+  sendRawCommand("mac set ar off");
 
   if (_moduleType == RN2903)
   {
-    _serial.println("mac set pwridx 5");
+    sendRawCommand("mac set pwridx 5");
   }
   else
   {
-    _serial.println("mac set pwridx 1");
+    sendRawCommand("mac set pwridx 1");
   }
-  _serial.readStringUntil('\n');
-  _serial.println("mac set dr 5"); //0= min, 7=max
-  _serial.readStringUntil('\n');
+  sendRawCommand("mac set dr 5"); //0= min, 7=max
 
   _serial.setTimeout(60000);
-  _serial.println("mac save");
-  _serial.readStringUntil('\n');
-  _serial.println("mac join abp");
-  receivedData = _serial.readStringUntil('\n');
+  sendRawCommand("mac save");
+  sendRawCommand("mac join abp");
   receivedData = _serial.readStringUntil('\n');
 
   _serial.setTimeout(2000);
@@ -333,12 +368,20 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
       _serial.print(data);
     }
     _serial.println();
+
     String receivedData = _serial.readStringUntil('\n');
+
+    #ifdef DEBUG_RN2483
+      DEBUG_RN2483.println(receivedData) ;
+    #endif
 
     if(receivedData.startsWith("ok"))
     {
       _serial.setTimeout(30000);
       receivedData = _serial.readStringUntil('\n');
+      #ifdef DEBUG_RN2483
+        DEBUG_RN2483.println(receivedData) ;
+      #endif
       _serial.setTimeout(2000);
 
       if(receivedData.startsWith("mac_tx_ok"))
@@ -547,6 +590,12 @@ String rn2xx3::sendRawCommand(String command)
   _serial.println(command);
   String ret = _serial.readStringUntil('\n');
   ret.trim();
+
+  #ifdef DEBUG_RN2483
+    DEBUG_RN2483.println(command);
+    DEBUG_RN2483.println(ret);
+  #endif
+
   return ret;
 }
 
