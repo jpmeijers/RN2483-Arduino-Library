@@ -58,6 +58,9 @@ void setup()
     //transmit a startup message
     myLora.tx("TTN Mapper on Sodaq One");
 
+    // Enable next line to enable debug information of the sodaq_gps
+    //sodaq_gps.setDiag(SerialUSB);
+
     // initialize GPS
     sodaq_gps.init(GPS_ENABLE);
 
@@ -117,7 +120,8 @@ void loop()
   SerialUSB.println("Waiting for GPS fix");
 
   digitalWrite(LED_GREEN, LOW);
-  sodaq_gps.scan();
+  // Keep the GPS enabled after we do a scan, increases accuracy
+  sodaq_gps.scan(true);
   digitalWrite(LED_GREEN, HIGH);
 
   while(sodaq_gps.getLat()==0.0)
@@ -125,7 +129,8 @@ void loop()
     SerialUSB.println("Latitude still 0.0, doing another scan");
 
     digitalWrite(LED_RED, LOW);
-    sodaq_gps.scan();
+    // Keep the GPS enabled after we do a scan, increases accuracy
+    sodaq_gps.scan(true);
     digitalWrite(LED_RED, HIGH);
   }
 
