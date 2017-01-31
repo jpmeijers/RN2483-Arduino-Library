@@ -43,6 +43,8 @@ SoftwareSerial mySerial(10, 11); // RX, TX
 //giving the software serial as port to use
 rn2xx3 myLora(mySerial);
 
+String received;
+
 // the setup routine runs once when you press reset:
 void setup() 
 {
@@ -133,7 +135,7 @@ void loop()
         break;
 
       case TX_WITH_RX:
-        String received = myLora.getRx();
+        received = myLora.getRx();
         received = myLora.base16decode(received);
         Serial.print("Received downlink: " + received);
         break;
