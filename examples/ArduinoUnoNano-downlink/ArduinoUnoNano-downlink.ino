@@ -125,22 +125,22 @@ void loop()
     switch(myLora.txCnf("!")) //one byte, blocking function
     {
       case TX_FAIL:
-        {
-          Serial.println("TX unsuccessful or not acknowledged");
-        }
+      {
+        Serial.println("TX unsuccessful or not acknowledged");
         break;
+      }
       case TX_SUCCESS:
-        {
-          Serial.println("TX successful and acknowledged");
-        }
+      {
+        Serial.println("TX successful and acknowledged");
         break;
+      }
       case TX_WITH_RX:
-        {
-          String received = myLora.getRx();
-          received = myLora.base16decode(received);
-          Serial.print("Received downlink: " + received);
-        }
+      {
+        String received = myLora.getRx();
+        received = myLora.base16decode(received);
+        Serial.print("Received downlink: " + received);
         break;
+      }
       default:
         Serial.println("Unknown response from TX function");
     }
