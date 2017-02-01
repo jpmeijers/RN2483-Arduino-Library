@@ -142,7 +142,9 @@ void loop()
         break;
       }
       default:
+      {
         Serial.println("Unknown response from TX function");
+      }
     }
 
     led_off();
