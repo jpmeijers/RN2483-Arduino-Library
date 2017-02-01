@@ -132,8 +132,8 @@ void loop()
       case TX_SUCCESS:
         {
           Serial.println("TX successful and acknowledged");
-          break;
         }
+        break;
       case TX_WITH_RX:
         {
           String received = myLora.getRx();
