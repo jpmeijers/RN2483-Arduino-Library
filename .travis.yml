@@ -11,6 +11,8 @@ cache:
 env:
     - PLATFORMIO_CI_SRC=examples/SodaqOne-TTN-Mapper-ascii PLATFORMIO_CI_EXTRA_ARGS="--board=sodaq_one"
     - PLATFORMIO_CI_SRC=examples/SodaqOne-TTN-Mapper-binary PLATFORMIO_CI_EXTRA_ARGS="--board=sodaq_one"
+    - PLATFORMIO_CI_SRC=examples/SodaqOneAccelerometer PLATFORMIO_CI_EXTRA_ARGS="--board=sodaq_one"
+    - PLATFORMIO_CI_SRC=examples/SodaqOneSimpleBicycleTracker PLATFORMIO_CI_EXTRA_ARGS="--board=sodaq_one"
 
 install:
     - pip install -U platformio
