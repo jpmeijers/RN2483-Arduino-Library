@@ -164,7 +164,7 @@ void build_packet()
   txBuffer[8] = hdopGps & 0xFF;
 
   toLog = "";
-  for(int i = 0; i<sizeof(txBuffer); i++)
+  for(size_t i = 0; i<sizeof(txBuffer); i++)
   {
     char buffer[3];
     sprintf(buffer, "%02x", txBuffer[i]);
