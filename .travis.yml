@@ -26,6 +26,7 @@ env:
 
 install:
     - pip install -U platformio
+    - pio update
 
 script:
     - platformio ci --lib="./src" $PLATFORMIO_CI_EXTRA_ARGS
