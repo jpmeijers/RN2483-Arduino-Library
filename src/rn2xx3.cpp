@@ -571,6 +571,20 @@ void rn2xx3::setFrequencyPlan(FREQ_PLAN fp)
     case TTN_EU:
       break;
 
+    case TTN_US:
+      for(int channel=0; channel<72; channel++)
+      {
+        if(channel>=8 && channel<16)
+        {
+          sendRawCommand(F("mac set ch status "+channel+" on"));
+        }
+        else
+        {
+          sendRawCommand(F("mac set ch status "+channel+" off"));
+        }
+      }
+      break;
+
     case DEFAULT_EU:
     default:
       //set 868.1, 868.3 and 868.5

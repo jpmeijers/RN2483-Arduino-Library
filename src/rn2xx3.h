@@ -21,6 +21,7 @@ enum RN2xx3_t {
 enum FREQ_PLAN {
   SINGLE_CHANNEL_EU,
   TTN_EU,
+  TTN_US,
   DEFAULT_EU
 };
 
