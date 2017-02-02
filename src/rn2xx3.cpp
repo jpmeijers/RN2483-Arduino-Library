@@ -137,7 +137,7 @@ bool rn2xx3::initOTAA(String AppEUI, String AppKey, String DevEUI)
     if (AppEUI!="" && AppKey!="")
     {
       String addr = sendRawCommand(F("sys get hweui"));
-      if(addr!="" && addr.length() == 16 )
+      if( addr.length() == 16 )
       {
         _deveui = addr;
       }
@@ -167,34 +167,33 @@ bool rn2xx3::initOTAA(String AppEUI, String AppKey, String DevEUI)
 
   if (_moduleType == RN2903)
   {
-    sendRawCommand("mac set pwridx 5");
+    sendRawCommand(F("mac set pwridx 5"));
   }
   else
   {
-    sendRawCommand("mac set pwridx 1");
+    sendRawCommand(F("mac set pwridx 1"));
   }
 
-  sendRawCommand("mac set adr off");
+  sendRawCommand(F("mac set adr off"));
 
   // Switch off automatic replies, because this library can not
   // handle more than one mac_rx per tx. See RN2483 datasheet,
   // 2.4.8.14, page 27 and the scenario on page 19.
-  //sendRawCommand("mac set ar off");
+  sendRawCommand(F("mac set ar off"));
 
   if (_moduleType == RN2483)
   {
-    sendRawCommand("mac set rx2 3 869525000");
+    sendRawCommand(F("mac set rx2 3 869525000"));
   }
 
-  sendRawCommand("mac save");
-
   _serial.setTimeout(30000);
+  sendRawCommand(F("mac save"));
 
   bool joined = false;
 
   for(int i=0; i<2 && !joined; i++)
   {
-    sendRawCommand("mac join otaa");
+    sendRawCommand(F("mac join otaa"));
     // Parse 2nd response
     receivedData = _serial.readStringUntil('\n');
 
@@ -260,11 +259,11 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
 
   switch (_moduleType) {
     case RN2903:
-      sendRawCommand("mac reset");
+      sendRawCommand(F("mac reset"));
       break;
     case RN2483:
-      sendRawCommand("mac reset 868");
-      sendRawCommand("mac set rx2 3 869525000");
+      sendRawCommand(F("mac reset 868"));
+      sendRawCommand(F("mac set rx2 3 869525000"));
       break;
     default:
       // we shouldn't go forward with the init
@@ -274,12 +273,12 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
   sendRawCommand("mac set nwkskey "+_nwkskey);
   sendRawCommand("mac set appskey "+_appskey);
   sendRawCommand("mac set devaddr "+_devAddr);
-  sendRawCommand("mac set adr off");
+  sendRawCommand(F("mac set adr off"));
 
   // Switch off automatic replies, because this library can not
   // handle more than one mac_rx per tx. See RN2483 datasheet,
   // 2.4.8.14, page 27 and the scenario on page 19.
-  sendRawCommand("mac set ar off");
+  sendRawCommand(F("mac set ar off"));
 
   if (_moduleType == RN2903)
   {
@@ -287,13 +286,13 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
   }
   else
   {
-    sendRawCommand("mac set pwridx 1");
+    sendRawCommand(F("mac set pwridx 1"));
   }
-  sendRawCommand("mac set dr 5"); //0= min, 7=max
+  sendRawCommand(F("mac set dr 5")); //0= min, 7=max
 
   _serial.setTimeout(60000);
-  sendRawCommand("mac save");
-  sendRawCommand("mac join abp");
+  sendRawCommand(F("mac save"));
+  sendRawCommand(F("mac join abp"));
   receivedData = _serial.readStringUntil('\n');
 
   _serial.setTimeout(2000);
@@ -371,17 +370,17 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
 
     String receivedData = _serial.readStringUntil('\n');
 
-    #ifdef DEBUG_RN2483
-      DEBUG_RN2483.println(receivedData) ;
-    #endif
+#ifdef DEBUG_RN2483
+    DEBUG_RN2483.println(receivedData) ;
+#endif
 
     if(receivedData.startsWith("ok"))
     {
       _serial.setTimeout(30000);
       receivedData = _serial.readStringUntil('\n');
-      #ifdef DEBUG_RN2483
-        DEBUG_RN2483.println(receivedData) ;
-      #endif
+#ifdef DEBUG_RN2483
+      DEBUG_RN2483.println(receivedData) ;
+#endif
       _serial.setTimeout(2000);
 
       if(receivedData.startsWith("mac_tx_ok"))
@@ -591,10 +590,10 @@ String rn2xx3::sendRawCommand(String command)
   String ret = _serial.readStringUntil('\n');
   ret.trim();
 
-  #ifdef DEBUG_RN2483
-    DEBUG_RN2483.println(command);
-    DEBUG_RN2483.println(ret);
-  #endif
+#ifdef DEBUG_RN2483
+  DEBUG_RN2483.println(command);
+  DEBUG_RN2483.println(ret);
+#endif
 
   return ret;
 }
