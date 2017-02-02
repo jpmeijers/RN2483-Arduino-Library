@@ -152,8 +152,10 @@ class rn2xx3
 
     /*
      * Set the active channels to use.
+     * Returns true if setting the channels is possible.
+     * Returns false if you are trying to use the wrong channels on the wrong module type.
      */
-    void setFrequencyPlan(FREQ_PLAN);
+    bool setFrequencyPlan(FREQ_PLAN);
 
     /*
      * Returns the last downlink message HEX string.
