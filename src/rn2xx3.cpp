@@ -24,10 +24,13 @@ _serial(serial)
   _serial.setTimeout(2000);
 }
 
+//TODO: change to a boolean
 void rn2xx3::autobaud()
 {
   String response = "";
-  while (response=="")
+
+  // Try a maximum of 10 times with a 1 second delay
+  for (uint8_t i=0; i<10 && response==""; i++)
   {
     delay(1000);
     _serial.write((byte)0x00);
@@ -36,6 +39,14 @@ void rn2xx3::autobaud()
     _serial.println("sys get ver");
     response = _serial.readStringUntil('\n');
   }
+}
+
+
+String rn2xx3::sysver()
+{
+  String ver = sendRawCommand(F("sys get ver"));
+  ver.trim();
+  return ver;
 }
 
 
@@ -56,6 +67,7 @@ RN2xx3_t rn2xx3::configureModuleType()
   }
   return _moduleType;
 }
+
 String rn2xx3::hweui()
 {
   return (sendRawCommand(F("sys get hweui")));
@@ -76,15 +88,6 @@ String rn2xx3::appkey()
 String rn2xx3::deveui()
 {
   return (sendRawCommand(F("mac get deveui")));
-}
-
-
-
-String rn2xx3::sysver()
-{
-  String ver = sendRawCommand(F("sys get ver"));
-  ver.trim();
-  return ver;
 }
 
 bool rn2xx3::init()
@@ -114,54 +117,52 @@ bool rn2xx3::initOTAA(String AppEUI, String AppKey, String DevEUI)
   while(_serial.available())
     _serial.read();
 
+  // detect which model radio we are using
   configureModuleType();
 
-  switch (_moduleType) {
+  // reset the module - this will clear all keys set previously
+  switch (_moduleType)
+  {
     case RN2903:
       sendRawCommand(F("mac reset"));
-    break;
+      break;
     case RN2483:
       sendRawCommand(F("mac reset 868"));
-    break;
+      break;
     default:
       // we shouldn't go forward with the init
       return false;
   }
 
-  // Key not empty, use it
-  if (DevEUI.length() == 16) {
-      _deveui = DevEUI;
-  } else {
-    // If not all keys are empty 
-    // In this case use on stored in RN2xx3 module
-    if (AppEUI!="" && AppKey!="")
-    {
-      String addr = sendRawCommand(F("sys get hweui"));
-      if( addr.length() == 16 )
-      {
-        _deveui = addr;
-      }
-    }
-  }
-
-
-  // Key not empty, use it, else use on stored in RN2xx3 module
-  if ( DevEUI.length() == 16 )
+  // If the Device EUI was given as a parameter, use it
+  // otherwise use the Hardware EUI.
+  if (DevEUI.length() == 16)
   {
-    sendRawCommand("mac set deveui "+_deveui);
+    _deveui = DevEUI;
+  }
+  else
+  {
+    String addr = sendRawCommand(F("sys get hweui"));
+    if( addr.length() == 16 )
+    {
+      _deveui = addr;
+    }
+    // else fall back to the hard coded value in the header file
   }
 
-  // Key not empty, use it, else use on stored in RN2xx3 module
+  sendRawCommand("mac set deveui "+_deveui);
+
+  // A valid length App EUI was given. Use it.
   if ( AppEUI.length() == 16 )
   {
       _appeui = AppEUI;
       sendRawCommand("mac set appeui "+_appeui);
   }
 
-  // Key not empty, use it, else use on stored in RN2xx3 module
+  // A valid length App Key was give. Use it.
   if ( AppKey.length() == 32 )
   {
-    _appskey = AppKey; //reuse the variable
+    _appskey = AppKey; //reuse the same variable as for ABP
     sendRawCommand("mac set appkey "+_appskey);
   }
 
@@ -174,6 +175,9 @@ bool rn2xx3::initOTAA(String AppEUI, String AppKey, String DevEUI)
     sendRawCommand(F("mac set pwridx 1"));
   }
 
+  // TTN does not yet support Adaptive Data Rate.
+  // Using it is also only necessary in limited situations.
+  // Therefore disable it by default.
   sendRawCommand(F("mac set adr off"));
 
   // Switch off automatic replies, because this library can not
@@ -181,6 +185,8 @@ bool rn2xx3::initOTAA(String AppEUI, String AppKey, String DevEUI)
   // 2.4.8.14, page 27 and the scenario on page 19.
   sendRawCommand(F("mac set ar off"));
 
+  // Semtech and TTN both use a non default RX2 window freq and SF.
+  // Maybe we should not specify this for other networks.
   if (_moduleType == RN2483)
   {
     sendRawCommand(F("mac set rx2 3 869525000"));
@@ -191,6 +197,7 @@ bool rn2xx3::initOTAA(String AppEUI, String AppKey, String DevEUI)
 
   bool joined = false;
 
+  // Only try twice to join, then return and let the user handle it.
   for(int i=0; i<2 && !joined; i++)
   {
     sendRawCommand(F("mac join otaa"));
@@ -220,22 +227,26 @@ bool rn2xx3::initOTAA(uint8_t * AppEUI, uint8_t * AppKey, uint8_t * DevEUI)
   char buff[3];
 
   app_eui="";
-  for (uint8_t i=0; i<8; i++)  {
+  for (uint8_t i=0; i<8; i++)
+  {
     sprintf(buff, "%02X", AppEUI[i]);
     app_eui += String (buff);
   }
 
   dev_eui = "0";
-  if (DevEUI) {
+  if (DevEUI) //==0
+  {
     dev_eui = "";
-    for (uint8_t i=0; i<8; i++)  {
+    for (uint8_t i=0; i<8; i++)
+    {
       sprintf(buff, "%02X", DevEUI[i]);
       dev_eui += String (buff);
     }
   }
 
   app_key="";
-  for (uint8_t i=0; i<16; i++)  {
+  for (uint8_t i=0; i<16; i++)
+  {
     sprintf(buff, "%02X", AppKey[i]);
     app_key += String (buff);
   }
@@ -369,19 +380,15 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
     _serial.println();
 
     String receivedData = _serial.readStringUntil('\n');
-
-#ifdef DEBUG_RN2483
-    DEBUG_RN2483.println(receivedData) ;
-#endif
+    //TODO: Debug print on receivedData
 
     if(receivedData.startsWith("ok"))
     {
       _serial.setTimeout(30000);
       receivedData = _serial.readStringUntil('\n');
-#ifdef DEBUG_RN2483
-      DEBUG_RN2483.println(receivedData) ;
-#endif
       _serial.setTimeout(2000);
+
+      //TODO: Debug print on receivedData
 
       if(receivedData.startsWith("mac_tx_ok"))
       {
@@ -462,6 +469,11 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
     {
       busy_count++;
 
+      // Not sure if this is wise. At low data rates with large packets
+      // this can perhaps cause transmissions at more than 1% duty cycle.
+      // Need to calculate the correct constant value.
+      // But it is wise to have this check and re-init in case the
+      // lorawan stack in the RN2xx3 hangs.
       if(busy_count>=10)
       {
         init();
@@ -590,10 +602,7 @@ String rn2xx3::sendRawCommand(String command)
   String ret = _serial.readStringUntil('\n');
   ret.trim();
 
-#ifdef DEBUG_RN2483
-  DEBUG_RN2483.println(command);
-  DEBUG_RN2483.println(ret);
-#endif
+  //TODO: Add debug print
 
   return ret;
 }
