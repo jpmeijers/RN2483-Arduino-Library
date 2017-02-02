@@ -555,37 +555,119 @@ RN2xx3_t rn2xx3::moduleType()
   return _moduleType;
 }
 
-void rn2xx3::setFrequencyPlan(FREQ_PLAN fp)
+bool rn2xx3::setFrequencyPlan(FREQ_PLAN fp)
 {
+  bool returnValue;
   switch (fp)
   {
     case SINGLE_CHANNEL_EU:
-      //mac set rx2 <dataRate> <frequency>
-      //sendRawCommand(F("mac set rx2 5 868100000")); //use this for "strict" one channel gateways
-      sendRawCommand(F("mac set rx2 3 869525000")); //use for "non-strict" one channel gateways
-      sendRawCommand(F("mac set ch dcycle 0 50")); //1% duty cycle for this channel
-      sendRawCommand(F("mac set ch dcycle 1 65535")); //almost never use this channel
-      sendRawCommand(F("mac set ch dcycle 2 65535")); //almost never use this channel
-      break;
+    {
+      if(_moduleType == RN2483)
+      {
+        //mac set rx2 <dataRate> <frequency>
+        //sendRawCommand(F("mac set rx2 5 868100000")); //use this for "strict" one channel gateways
+        sendRawCommand(F("mac set rx2 3 869525000")); //use for "non-strict" one channel gateways
+        sendRawCommand(F("mac set ch dcycle 0 50")); //1% duty cycle for this channel
+        sendRawCommand(F("mac set ch dcycle 1 65535")); //almost never use this channel
+        sendRawCommand(F("mac set ch dcycle 2 65535")); //almost never use this channel
+
+        returnValue = true;
+        break;
+      }
+    }
 
     case TTN_EU:
+    {
+      /*
+        The <dutyCycle> value that needs to be configured can be 
+        obtained from the actual duty cycle X (in percentage) 
+        using the following formula: <dutyCycle> = (100/X) – 1
+
+        10% -> 9
+        1% -> 99
+        0.33% -> 299
+        8 channels, total of 1% duty cycle:
+        0.125% per channel -> 799
+       */
+
+      //RX window 2
+      sendRawCommand(F("mac set rx2 3 869525000"));
+
+      //channel 0
+      sendRawCommand(F("mac set ch dcycle 0 799"));
+
+      //channel 1
+      sendRawCommand(F("mac set ch drrange 1 0 6"));
+      sendRawCommand(F("mac set ch dcycle 1 799"));
+
+      //channel 2
+      sendRawCommand(F("mac set ch dcycle 2 799"));
+
+      //channel 3
+      sendRawCommand(F("mac set ch freq 3 867100000"));
+      sendRawCommand(F("mac set ch drrange 3 0 5"));
+      sendRawCommand(F("mac set ch dcycle 3 799"));
+      sendRawCommand(F("mac set ch status 3 on"));
+
+      //channel 4
+      sendRawCommand(F("mac set ch freq 4 867300000"));
+      sendRawCommand(F("mac set ch drrange 4 0 5"));
+      sendRawCommand(F("mac set ch dcycle 4 799"));
+      sendRawCommand(F("mac set ch status 4 on"));
+
+      //channel 5
+      sendRawCommand(F("mac set ch freq 5 867500000"));
+      sendRawCommand(F("mac set ch drrange 5 0 5"));
+      sendRawCommand(F("mac set ch dcycle 5 799"));
+      sendRawCommand(F("mac set ch status 5 on"));
+
+      //channel 6
+      sendRawCommand(F("mac set ch freq 6 867700000"));
+      sendRawCommand(F("mac set ch drrange 6 0 5"));
+      sendRawCommand(F("mac set ch dcycle 6 799"));
+      sendRawCommand(F("mac set ch status 6 on"));
+
+      //channel 7
+      sendRawCommand(F("mac set ch freq 7 867900000"));
+      sendRawCommand(F("mac set ch drrange 7 0 5"));
+      sendRawCommand(F("mac set ch dcycle 7 799"));
+      sendRawCommand(F("mac set ch status 7 on"));
       break;
+    }
 
     case TTN_US:
-      for(int channel=0; channel<72; channel++)
+    {
+      if(_moduleType == RN2903)
       {
-        if(channel>=8 && channel<16)
+        for(int channel=0; channel<72; channel++)
         {
-          sendRawCommand(F("mac set ch status "+channel+" on"));
-        }
-        else
-        {
-          sendRawCommand(F("mac set ch status "+channel+" off"));
+          if(channel>=8 && channel<16)
+          {
+            sendRawCommand(F("mac set ch status "+channel+" on"));
+          }
+          else
+          {
+            sendRawCommand(F("mac set ch status "+channel+" off"));
+          }
         }
       }
       break;
+    }
 
     case DEFAULT_EU:
+    {
+      //fix duty cycle
+      sendRawCommand(F("mac set ch dcycle 0 799"));
+      sendRawCommand(F("mac set ch dcycle 1 799"));
+      sendRawCommand(F("mac set ch dcycle 2 799"));
+
+      //disable non-default channels
+      sendRawCommand(F("mac set ch status 3 on"));
+      sendRawCommand(F("mac set ch status 4 on"));
+      sendRawCommand(F("mac set ch status 5 on"));
+      sendRawCommand(F("mac set ch status 6 on"));
+      sendRawCommand(F("mac set ch status 7 on"));
+    }
     default:
       //set 868.1, 868.3 and 868.5
       break;
