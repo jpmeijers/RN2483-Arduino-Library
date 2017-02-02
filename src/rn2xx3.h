@@ -12,6 +12,20 @@
 
 #include "Arduino.h"
 
+// Uncomment this line Use this to debug Library
+//#define DEBUG_RN2483
+
+#ifdef DEBUG_RN2483
+  #undef DEBUG_RN2483
+  // Arduino ZERO
+  #if defined (ARDUINO_ARCH_SAMD  )
+    #define DEBUG_RN2483   SerialUSB
+  #else
+    #define DEBUG_RN2483   Serial
+  #endif
+#endif
+
+
 enum RN2xx3_t {
   RN_NA = 0, // Not set
   RN2903 = 2903,
@@ -56,6 +70,27 @@ class rn2xx3
     String hweui();
 
     /*
+     * Get the hardware APP KEY of the radio, so that we can register it on The Things Network
+     * You have to have a working serial connection to the radio before calling this function.
+     * In other words you have to at least call autobaud() some time before this function.
+     */
+    String appkey();
+
+    /*
+     * Get the hardware APP EUI of the radio, so that we can register it on The Things Network
+     * You have to have a working serial connection to the radio before calling this function.
+     * In other words you have to at least call autobaud() some time before this function.
+     */
+    String appeui();
+
+    /*
+     * Get the Device EUI of the radio, so that we can register it on The Things Network
+     * You have to have a working serial connection to the radio before calling this function.
+     * In other words you have to at least call autobaud() some time before this function.
+     */
+    String deveui();
+
+    /*
      * Get the RN2xx3's version number.
      */
     String sysver();
@@ -79,8 +114,19 @@ class rn2xx3
      *
      * AppEUI: Application EUI as a HEX string. Example "70B3D57ED00001A6"
      * AppKey: Apllication key as a HEX string. Example "A23C96EE13804963F8C2BD6285448198"
+     * DevEUI: Device EUI as a HEX string. Example "70B3D57ED00001A6"
+     *         if not provided will try hardware from module 
+     * If no keys are provided, use the one stored in RN2xx3 module
      */
-    bool initOTAA(String AppEUI, String AppKey);
+    bool initOTAA(String AppEUI="", String AppKey="", String DevEUI="");
+
+    /*
+     * Initialise the RN2xx3 and join a network using over the air activation.
+     *
+     * AppEUI: Application EUI as uint8_t buffer
+     * AppKey: Apllication key as uint8_t buffer
+     */
+     bool initOTAA(uint8_t * AppEUI, uint8_t * AppKey, uint8_t * DevEui);
 
     /*
      * Transmit the provided data. The data is hex-encoded by this library,
@@ -186,9 +232,9 @@ class rn2xx3
     //This one falls in the "testing" address space.
     String _devAddr = "03FFBEEF";
 
-    //if the hardware id can not be obtained from the module,
+    // if you want to use another DevEUI than the hardware one 
     // use this deveui for LoRa WAN
-    String _default_deveui = "0011223344556677";
+    String _deveui = "0011223344556677";
 
     //the appeui to use for LoRa WAN
     String _appeui = "0";
