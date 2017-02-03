@@ -29,7 +29,7 @@
 #include <rn2xx3.h>
 
 //create an instance of the rn2xx3 library,
-//giving the software serial as port to use
+//giving Serial1 as stream to use for communication with the radio
 rn2xx3 myLora(Serial1);
 
 String toLog;
@@ -47,8 +47,7 @@ void setup()
     Serial1.begin(57600);
 
     // make sure usb serial connection is available,
-    // or after 10s go on anyway for 'headless' use of the
-    // node.
+    // or after 10s go on anyway for 'headless' use of the node.
     while ((!SerialUSB) && (millis() < 10000));
 
     SerialUSB.println("SODAQ LoRaONE TTN Mapper starting");
@@ -64,6 +63,11 @@ void setup()
     // initialize GPS
     sodaq_gps.init(GPS_ENABLE);
 
+    // Set the datarate/spreading factor at which we communicate.
+    // DR5 is the fastest and best to use. DR0 is the slowest.
+    myLora.setDR(dr);
+
+    // LED pins as outputs. HIGH=Off, LOW=On
     pinMode(LED_BLUE, OUTPUT);
     digitalWrite(LED_BLUE, HIGH);
     pinMode(LED_RED, OUTPUT);
@@ -124,6 +128,7 @@ void loop()
   sodaq_gps.scan(true);
   digitalWrite(LED_GREEN, HIGH);
 
+  // if the latitude is 0, we likely do not have a GPS fix yet, so wait longer
   while(sodaq_gps.getLat()==0.0)
   {
     SerialUSB.println("Latitude still 0.0, doing another scan");
@@ -178,7 +183,8 @@ void loop()
   digitalWrite(LED_BLUE, HIGH);
 
   // Cycle between datarate 0 and 5
-  dr = (dr + 1) % 6;
-  myLora.setDR(dr);
+  //dr = (dr + 1) % 6;
+  //myLora.setDR(dr);
+
   SerialUSB.println("TX done");
 }
