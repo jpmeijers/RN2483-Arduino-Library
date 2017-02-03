@@ -23,16 +23,48 @@
  *
  * TO CONTRIBUTE TO TTN Mapper:
  * 1. Register a new Application and/or new device on the
- *     TTN Dashboard (https://staging.thethingsnetwork.org).
+ *     TTN Dashboard (https://console.thethingsnetwork.org).
  * 2. Copy the correct keys into the line "myLora.initABP(XXX);"
  *     or "myLora.initOTAA(XXX);" in this program.
  * 3. Comment out or remove the line: "while(!Serial); //wait for Serial to
        be available - remove this line after successful test run"
- * 4. Make sure packets are arriving on the TTN Dashboard when your node is
+ * 4. Make sure packets are arriving on the TTN console when your node is
  *     powered and in reach of a gateway.
- * 5. Share your Application EUI, Access Key and Device EUI with
+ * 5. Share your Application ID, Access Key and Device ID with
  *     contribute@ttnmapper.org so that your measurements can be automatically
  *     imported into TTN Mapper.
+ *
+ *
+ * To decode the binary payload, you can use the following
+ * javascript decoder function. It should work with the TTN console.
+ *
+function Decoder(bytes, port) {
+  // Decode an uplink message from a buffer
+  // (array) of bytes to an object of fields.
+  var decoded = {};
+
+  // if (port === 1) decoded.led = bytes[0];
+  decoded.lat = ((bytes[0]<<16)>>>0) + ((bytes[1]<<8)>>>0) + bytes[2];
+  decoded.lat = (decoded.lat / 16777215.0 * 180) - 90;
+
+  decoded.lon = ((bytes[3]<<16)>>>0) + ((bytes[4]<<8)>>>0) + bytes[5];
+  decoded.lon = (decoded.lon / 16777215.0 * 360) - 180;
+
+  var altValue = ((bytes[6]<<8)>>>0) + bytes[7];
+  var sign = bytes[6] & (1 << 7);
+  if(sign)
+  {
+    decoded.alt = 0xFFFF0000 | altValue;
+  }
+  else
+  {
+    decoded.alt = altValue;
+  }
+
+  decoded.hdop = bytes[8] / 10.0;
+
+  return decoded;
+}
  *
  */
 #include "TinyGPS++.h"
