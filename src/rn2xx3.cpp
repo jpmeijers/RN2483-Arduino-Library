@@ -36,6 +36,7 @@ void rn2xx3::autobaud()
     _serial.write((byte)0x00);
     _serial.write(0x55);
     _serial.println();
+    // we could use sendRawCommand(F("sys get ver")); here
     _serial.println("sys get ver");
     response = _serial.readStringUntil('\n');
   }
@@ -187,10 +188,11 @@ bool rn2xx3::initOTAA(String AppEUI, String AppKey, String DevEUI)
 
   // Semtech and TTN both use a non default RX2 window freq and SF.
   // Maybe we should not specify this for other networks.
-  if (_moduleType == RN2483)
-  {
-    sendRawCommand(F("mac set rx2 3 869525000"));
-  }
+  // if (_moduleType == RN2483)
+  // {
+  //   sendRawCommand(F("mac set rx2 3 869525000"));
+  // }
+  // Disabled for now because an OTAA join seems to work fine without.
 
   _serial.setTimeout(30000);
   sendRawCommand(F("mac save"));
@@ -274,7 +276,9 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
       break;
     case RN2483:
       sendRawCommand(F("mac reset 868"));
-      sendRawCommand(F("mac set rx2 3 869525000"));
+      // sendRawCommand(F("mac set rx2 3 869525000"));
+      // In the past we set the downlink channel here, 
+      // but setFrequencyPlan is a better place to do it.
       break;
     default:
       // we shouldn't go forward with the init
