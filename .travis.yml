@@ -9,8 +9,8 @@ cache:
         - "~/.platformio"
 
 env:
-    global:
-        - PLATFORMIO_BUILD_FLAGS=-Werror
+#    global:
+#        - PLATFORMIO_BUILD_FLAGS=-Werror
     matrix:
         - PLATFORMIO_CI_SRC=examples/ArduinoUnoNano-basic PLATFORMIO_CI_EXTRA_ARGS="--board=uno"
         - PLATFORMIO_CI_SRC=examples/ArduinoUnoNano-downlink PLATFORMIO_CI_EXTRA_ARGS="--board=uno"
@@ -18,14 +18,13 @@ env:
         - PLATFORMIO_CI_SRC=examples/SodaqAutonomo-basic PLATFORMIO_CI_EXTRA_ARGS="--board=sodaq_autonomo"
         - PLATFORMIO_CI_SRC=examples/SodaqOne-TTN-Mapper-ascii PLATFORMIO_CI_EXTRA_ARGS="--board=sodaq_one"
         - PLATFORMIO_CI_SRC=examples/SodaqOne-TTN-Mapper-binary PLATFORMIO_CI_EXTRA_ARGS="--board=sodaq_one"
-        - PLATFORMIO_CI_SRC=examples/SodaqOneAccelerometer PLATFORMIO_CI_EXTRA_ARGS="--board=sodaq_one"
-        - PLATFORMIO_CI_SRC=examples/SodaqOneSimpleBicycleTracker PLATFORMIO_CI_EXTRA_ARGS="--board=sodaq_one"
         - PLATFORMIO_CI_SRC=examples/TheThingsUno-basic PLATFORMIO_CI_EXTRA_ARGS="--board=leonardo"
         - PLATFORMIO_CI_SRC=examples/TheThingsUno-GPSshield-TTN-Mapper-binary PLATFORMIO_CI_EXTRA_ARGS="--board=leonardo"
 
 
 install:
     - pip install -U platformio
+    - pio update
 
 script:
     - platformio ci --lib="./src" $PLATFORMIO_CI_EXTRA_ARGS
