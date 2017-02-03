@@ -38,7 +38,7 @@
  * To decode the binary payload, you can use the following
  * javascript decoder function. It should work with the TTN console.
  *
- function Decoder(bytes, port) {
+function Decoder(bytes, port) {
   // Decode an uplink message from a buffer
   // (array) of bytes to an object of fields.
   var decoded = {};
@@ -50,7 +50,16 @@
   decoded.lon = ((bytes[3]<<16)>>>0) + ((bytes[4]<<8)>>>0) + bytes[5];
   decoded.lon = (decoded.lon / 16777215.0 * 360) - 180;
 
-  decoded.alt = ((bytes[6]<<8)>>>0) + bytes[7];
+  var altValue = ((bytes[6]<<8)>>>0) + bytes[7];
+  var sign = bytes[6] & (1 << 7);
+  if(sign)
+  {
+    decoded.alt = 0xFFFF0000 | altValue;
+  }
+  else
+  {
+    decoded.alt = altValue;
+  }
 
   decoded.hdop = bytes[8] / 10.0;
 
