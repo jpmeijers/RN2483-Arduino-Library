@@ -180,7 +180,7 @@ void loop()
   txBuffer[8] = hdopGps & 0xFF;
 
   toLog = "";
-  for(int i = 0; i<sizeof(txBuffer); i++)
+  for(size_t i = 0; i<sizeof(txBuffer); i++)
   {
     char buffer[3];
     sprintf(buffer, "%02x", txBuffer[i]);
@@ -205,7 +205,7 @@ void loop()
   digitalWrite(LED_BLUE, HIGH);
 
   // Cycle between datarate 0 and 5
-  //dr = (++dr) % 6;
+  //dr = (dr + 1) % 6;
   //myLora.setDR(dr);
 
   SerialUSB.println("TX done");
