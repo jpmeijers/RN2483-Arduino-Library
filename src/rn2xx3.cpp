@@ -24,18 +24,30 @@ _serial(serial)
   _serial.setTimeout(2000);
 }
 
+//TODO: change to a boolean
 void rn2xx3::autobaud()
 {
   String response = "";
-  while (response=="")
+
+  // Try a maximum of 10 times with a 1 second delay
+  for (uint8_t i=0; i<10 && response==""; i++)
   {
     delay(1000);
     _serial.write((byte)0x00);
     _serial.write(0x55);
     _serial.println();
+    // we could use sendRawCommand(F("sys get ver")); here
     _serial.println("sys get ver");
     response = _serial.readStringUntil('\n');
   }
+}
+
+
+String rn2xx3::sysver()
+{
+  String ver = sendRawCommand(F("sys get ver"));
+  ver.trim();
+  return ver;
 }
 
 
@@ -56,28 +68,27 @@ RN2xx3_t rn2xx3::configureModuleType()
   }
   return _moduleType;
 }
+
 String rn2xx3::hweui()
 {
-  delay(100);
-  while(_serial.available())
-  {
-    _serial.read();
-  }
-  _serial.println("sys get hweui");
-  String addr = _serial.readStringUntil('\n');
-  addr.trim();
-  return addr;
+  return (sendRawCommand(F("sys get hweui")));
 }
 
-String rn2xx3::sysver()
+String rn2xx3::appeui()
 {
-  delay(100);
-  while(_serial.available())
-    _serial.read();
-  _serial.println("sys get ver");
-  String ver = _serial.readStringUntil('\n');
-  ver.trim();
-  return ver;
+  return ( sendRawCommand(F("mac get appeui") ));
+}
+
+String rn2xx3::appkey()
+{
+  // We can't read back from module, we send the one
+  // we have memorized if it has been set
+  return _appskey;
+}
+
+String rn2xx3::deveui()
+{
+  return (sendRawCommand(F("mac get deveui")));
 }
 
 bool rn2xx3::init()
@@ -97,88 +108,102 @@ bool rn2xx3::init()
 }
 
 
-bool rn2xx3::initOTAA(String AppEUI, String AppKey)
+bool rn2xx3::initOTAA(String AppEUI, String AppKey, String DevEUI)
 {
   _otaa = true;
-  _appeui = AppEUI;
   _nwkskey = "0";
-  _appskey = AppKey; //reuse the variable
   String receivedData;
 
   //clear serial buffer
   while(_serial.available())
     _serial.read();
 
-  _serial.println("sys get hweui");
-  String addr = _serial.readStringUntil('\n');
-  addr.trim();
-
+  // detect which model radio we are using
   configureModuleType();
 
-  switch (_moduleType) {
+  // reset the module - this will clear all keys set previously
+  switch (_moduleType)
+  {
     case RN2903:
-      _serial.println("mac reset");
+      sendRawCommand(F("mac reset"));
       break;
     case RN2483:
-      _serial.println("mac reset 868");
+      sendRawCommand(F("mac reset 868"));
       break;
     default:
       // we shouldn't go forward with the init
       return false;
   }
-  receivedData = _serial.readStringUntil('\n');
 
-  _serial.println("mac set appeui "+_appeui);
-  receivedData = _serial.readStringUntil('\n');
-
-  _serial.println("mac set appkey "+_appskey);
-  receivedData = _serial.readStringUntil('\n');
-
-  if(addr!="" && addr.length() == 16)
+  // If the Device EUI was given as a parameter, use it
+  // otherwise use the Hardware EUI.
+  if (DevEUI.length() == 16)
   {
-    _serial.println("mac set deveui "+addr);
+    _deveui = DevEUI;
   }
   else
   {
-    _serial.println("mac set deveui "+_default_deveui);
+    String addr = sendRawCommand(F("sys get hweui"));
+    if( addr.length() == 16 )
+    {
+      _deveui = addr;
+    }
+    // else fall back to the hard coded value in the header file
   }
-  receivedData = _serial.readStringUntil('\n');
+
+  sendRawCommand("mac set deveui "+_deveui);
+
+  // A valid length App EUI was given. Use it.
+  if ( AppEUI.length() == 16 )
+  {
+      _appeui = AppEUI;
+      sendRawCommand("mac set appeui "+_appeui);
+  }
+
+  // A valid length App Key was give. Use it.
+  if ( AppKey.length() == 32 )
+  {
+    _appskey = AppKey; //reuse the same variable as for ABP
+    sendRawCommand("mac set appkey "+_appskey);
+  }
 
   if (_moduleType == RN2903)
   {
-    _serial.println("mac set pwridx 5");
+    sendRawCommand(F("mac set pwridx 5"));
   }
   else
   {
-    _serial.println("mac set pwridx 1");
+    sendRawCommand(F("mac set pwridx 1"));
   }
-  receivedData = _serial.readStringUntil('\n');
 
-  _serial.println("mac set adr off");
-  receivedData = _serial.readStringUntil('\n');
+  // TTN does not yet support Adaptive Data Rate.
+  // Using it is also only necessary in limited situations.
+  // Therefore disable it by default.
+  sendRawCommand(F("mac set adr off"));
 
   // Switch off automatic replies, because this library can not
   // handle more than one mac_rx per tx. See RN2483 datasheet,
   // 2.4.8.14, page 27 and the scenario on page 19.
-  _serial.println("mac set ar off");
-  _serial.readStringUntil('\n');
+  sendRawCommand(F("mac set ar off"));
 
-  if (_moduleType == RN2483)
-  {
-    _serial.println("mac set rx2 3 869525000");
-    receivedData = _serial.readStringUntil('\n');
-  }
+  // Semtech and TTN both use a non default RX2 window freq and SF.
+  // Maybe we should not specify this for other networks.
+  // if (_moduleType == RN2483)
+  // {
+  //   sendRawCommand(F("mac set rx2 3 869525000"));
+  // }
+  // Disabled for now because an OTAA join seems to work fine without.
 
   _serial.setTimeout(30000);
-  _serial.println("mac save");
-  receivedData = _serial.readStringUntil('\n');
+  sendRawCommand(F("mac save"));
 
   bool joined = false;
 
+  // Only try twice to join, then return and let the user handle it.
   for(int i=0; i<2 && !joined; i++)
   {
-    _serial.println("mac join otaa");
-    receivedData = _serial.readStringUntil('\n');
+    sendRawCommand(F("mac join otaa"));
+    // Parse 2nd response
     receivedData = _serial.readStringUntil('\n');
 
     if(receivedData.startsWith("accepted"))
@@ -193,6 +218,42 @@ bool rn2xx3::initOTAA(String AppEUI, String AppKey)
   }
   _serial.setTimeout(2000);
   return joined;
+}
+
+
+bool rn2xx3::initOTAA(uint8_t * AppEUI, uint8_t * AppKey, uint8_t * DevEUI)
+{
+  String app_eui;
+  String dev_eui;
+  String app_key;
+  char buff[3];
+
+  app_eui="";
+  for (uint8_t i=0; i<8; i++)
+  {
+    sprintf(buff, "%02X", AppEUI[i]);
+    app_eui += String (buff);
+  }
+
+  dev_eui = "0";
+  if (DevEUI) //==0
+  {
+    dev_eui = "";
+    for (uint8_t i=0; i<8; i++)
+    {
+      sprintf(buff, "%02X", DevEUI[i]);
+      dev_eui += String (buff);
+    }
+  }
+
+  app_key="";
+  for (uint8_t i=0; i<16; i++)
+  {
+    sprintf(buff, "%02X", AppKey[i]);
+    app_key += String (buff);
+  }
+
+  return initOTAA(app_eui, app_key, dev_eui);
 }
 
 bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
@@ -211,54 +272,42 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
 
   switch (_moduleType) {
     case RN2903:
-      _serial.println("mac reset");
-      _serial.readStringUntil('\n');
+      sendRawCommand(F("mac reset"));
       break;
     case RN2483:
-      _serial.println("mac reset 868");
-      _serial.readStringUntil('\n');
-      _serial.println("mac set rx2 3 869525000");
-      _serial.readStringUntil('\n');
+      sendRawCommand(F("mac reset 868"));
+      // sendRawCommand(F("mac set rx2 3 869525000"));
+      // In the past we set the downlink channel here, 
+      // but setFrequencyPlan is a better place to do it.
       break;
     default:
       // we shouldn't go forward with the init
       return false;
   }
 
-  _serial.println("mac set nwkskey "+_nwkskey);
-  _serial.readStringUntil('\n');
-  _serial.println("mac set appskey "+_appskey);
-  _serial.readStringUntil('\n');
-
-  _serial.println("mac set devaddr "+_devAddr);
-  _serial.readStringUntil('\n');
-
-  _serial.println("mac set adr off");
-  _serial.readStringUntil('\n');
+  sendRawCommand("mac set nwkskey "+_nwkskey);
+  sendRawCommand("mac set appskey "+_appskey);
+  sendRawCommand("mac set devaddr "+_devAddr);
+  sendRawCommand(F("mac set adr off"));
 
   // Switch off automatic replies, because this library can not
   // handle more than one mac_rx per tx. See RN2483 datasheet,
   // 2.4.8.14, page 27 and the scenario on page 19.
-  _serial.println("mac set ar off");
-  _serial.readStringUntil('\n');
+  sendRawCommand(F("mac set ar off"));
 
   if (_moduleType == RN2903)
   {
-    _serial.println("mac set pwridx 5");
+    sendRawCommand("mac set pwridx 5");
   }
   else
   {
-    _serial.println("mac set pwridx 1");
+    sendRawCommand(F("mac set pwridx 1"));
   }
-  _serial.readStringUntil('\n');
-  _serial.println("mac set dr 5"); //0= min, 7=max
-  _serial.readStringUntil('\n');
+  sendRawCommand(F("mac set dr 5")); //0= min, 7=max
 
   _serial.setTimeout(60000);
-  _serial.println("mac save");
-  _serial.readStringUntil('\n');
-  _serial.println("mac join abp");
-  receivedData = _serial.readStringUntil('\n');
+  sendRawCommand(F("mac save"));
+  sendRawCommand(F("mac join abp"));
   receivedData = _serial.readStringUntil('\n');
 
   _serial.setTimeout(2000);
@@ -333,13 +382,17 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
       _serial.print(data);
     }
     _serial.println();
+
     String receivedData = _serial.readStringUntil('\n');
+    //TODO: Debug print on receivedData
 
     if(receivedData.startsWith("ok"))
     {
       _serial.setTimeout(30000);
       receivedData = _serial.readStringUntil('\n');
       _serial.setTimeout(2000);
+
+      //TODO: Debug print on receivedData
 
       if(receivedData.startsWith("mac_tx_ok"))
       {
@@ -420,6 +473,11 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
     {
       busy_count++;
 
+      // Not sure if this is wise. At low data rates with large packets
+      // this can perhaps cause transmissions at more than 1% duty cycle.
+      // Need to calculate the correct constant value.
+      // But it is wise to have this check and re-init in case the
+      // lorawan stack in the RN2xx3 hangs.
       if(busy_count>=10)
       {
         init();
@@ -547,6 +605,9 @@ String rn2xx3::sendRawCommand(String command)
   _serial.println(command);
   String ret = _serial.readStringUntil('\n');
   ret.trim();
+
+  //TODO: Add debug print
+
   return ret;
 }
 
@@ -555,25 +616,168 @@ RN2xx3_t rn2xx3::moduleType()
   return _moduleType;
 }
 
-void rn2xx3::setFrequencyPlan(FREQ_PLAN fp)
+bool rn2xx3::setFrequencyPlan(FREQ_PLAN fp)
 {
+  bool returnValue;
+
   switch (fp)
   {
     case SINGLE_CHANNEL_EU:
-      //mac set rx2 <dataRate> <frequency>
-      //sendRawCommand(F("mac set rx2 5 868100000")); //use this for "strict" one channel gateways
-      sendRawCommand(F("mac set rx2 3 869525000")); //use for "non-strict" one channel gateways
-      sendRawCommand(F("mac set ch dcycle 0 50")); //1% duty cycle for this channel
-      sendRawCommand(F("mac set ch dcycle 1 65535")); //almost never use this channel
-      sendRawCommand(F("mac set ch dcycle 2 65535")); //almost never use this channel
+    {
+      if(_moduleType == RN2483)
+      {
+        //mac set rx2 <dataRate> <frequency>
+        //sendRawCommand(F("mac set rx2 5 868100000")); //use this for "strict" one channel gateways
+        sendRawCommand(F("mac set rx2 3 869525000")); //use for "non-strict" one channel gateways
+        sendRawCommand(F("mac set ch dcycle 0 50")); //1% duty cycle for this channel
+        sendRawCommand(F("mac set ch dcycle 1 65535")); //almost never use this channel
+        sendRawCommand(F("mac set ch dcycle 2 65535")); //almost never use this channel
+
+        returnValue = true;
+      }
+      else
+      {
+        returnValue = false;
+      }
       break;
+    }
 
     case TTN_EU:
+    {
+      if(_moduleType == RN2483)
+      {
+      /*
+       * The <dutyCycle> value that needs to be configured can be 
+       * obtained from the actual duty cycle X (in percentage) 
+       * using the following formula: <dutyCycle> = (100/X) – 1
+       *
+       *  10% -> 9
+       *  1% -> 99
+       *  0.33% -> 299
+       *  8 channels, total of 1% duty cycle:
+       *  0.125% per channel -> 799
+       *
+       * Most of the TTN_EU frequency plan was copied from:
+       * https://github.com/TheThingsNetwork/arduino-device-lib
+       */
+
+        //RX window 2
+        sendRawCommand(F("mac set rx2 3 869525000"));
+
+        //channel 0
+        sendRawCommand(F("mac set ch dcycle 0 799"));
+
+        //channel 1
+        sendRawCommand(F("mac set ch drrange 1 0 6"));
+        sendRawCommand(F("mac set ch dcycle 1 799"));
+
+        //channel 2
+        sendRawCommand(F("mac set ch dcycle 2 799"));
+
+        //channel 3
+        sendRawCommand(F("mac set ch freq 3 867100000"));
+        sendRawCommand(F("mac set ch drrange 3 0 5"));
+        sendRawCommand(F("mac set ch dcycle 3 799"));
+        sendRawCommand(F("mac set ch status 3 on"));
+
+        //channel 4
+        sendRawCommand(F("mac set ch freq 4 867300000"));
+        sendRawCommand(F("mac set ch drrange 4 0 5"));
+        sendRawCommand(F("mac set ch dcycle 4 799"));
+        sendRawCommand(F("mac set ch status 4 on"));
+
+        //channel 5
+        sendRawCommand(F("mac set ch freq 5 867500000"));
+        sendRawCommand(F("mac set ch drrange 5 0 5"));
+        sendRawCommand(F("mac set ch dcycle 5 799"));
+        sendRawCommand(F("mac set ch status 5 on"));
+
+        //channel 6
+        sendRawCommand(F("mac set ch freq 6 867700000"));
+        sendRawCommand(F("mac set ch drrange 6 0 5"));
+        sendRawCommand(F("mac set ch dcycle 6 799"));
+        sendRawCommand(F("mac set ch status 6 on"));
+
+        //channel 7
+        sendRawCommand(F("mac set ch freq 7 867900000"));
+        sendRawCommand(F("mac set ch drrange 7 0 5"));
+        sendRawCommand(F("mac set ch dcycle 7 799"));
+        sendRawCommand(F("mac set ch status 7 on"));
+
+        returnValue = true;
+      }
+      else
+      {
+        returnValue = false;
+      }
+
       break;
+    }
+
+    case TTN_US:
+    {
+    /*
+     * Most of the TTN_US frequency plan was copied from:
+     * https://github.com/TheThingsNetwork/arduino-device-lib
+     */
+      if(_moduleType == RN2903)
+      {
+        for(int channel=0; channel<72; channel++)
+        {
+          // Build command string. First init, then add int.
+          String command = F("mac set ch status ");
+          command += channel;
+
+          if(channel>=8 && channel<16)
+          {
+            sendRawCommand(command+F(" on"));
+          }
+          else
+          {
+            sendRawCommand(command+F(" off"));
+          }
+        }
+        returnValue = true;
+      }
+      else
+      {
+        returnValue = false;
+      }
+      break;
+    }
 
     case DEFAULT_EU:
-    default:
-      //set 868.1, 868.3 and 868.5
+    {
+      if(_moduleType == RN2483)
+      {
+        //fix duty cycle - 1% = 0.33% per channel
+        sendRawCommand(F("mac set ch dcycle 0 799"));
+        sendRawCommand(F("mac set ch dcycle 1 799"));
+        sendRawCommand(F("mac set ch dcycle 2 799"));
+
+        //disable non-default channels
+        sendRawCommand(F("mac set ch status 3 on"));
+        sendRawCommand(F("mac set ch status 4 on"));
+        sendRawCommand(F("mac set ch status 5 on"));
+        sendRawCommand(F("mac set ch status 6 on"));
+        sendRawCommand(F("mac set ch status 7 on"));
+
+        returnValue = true;
+      }
+      else
+      {
+        returnValue = false;
+      }
+
       break;
+    }
+    default:
+    {
+      //set default channels 868.1, 868.3 and 868.5?
+      returnValue = false; //well we didn't do anything, so yes, false
+      break;
+    }
   }
+
+  return returnValue;
 }
