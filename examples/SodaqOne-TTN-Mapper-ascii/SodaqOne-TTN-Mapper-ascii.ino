@@ -112,13 +112,15 @@ void loop()
   SerialUSB.println("Waiting for GPS fix");
 
   digitalWrite(LED_GREEN, LOW);
-  sodaq_gps.scan();
+  // Keep the GPS enabled after we do a scan, increases accuracy
+  sodaq_gps.scan(true);
   digitalWrite(LED_GREEN, HIGH);
 
   while(sodaq_gps.getLat()==0.0)
   {
     digitalWrite(LED_RED, LOW);
-    sodaq_gps.scan();
+    // Keep the GPS enabled after we do a scan, increases accuracy
+    sodaq_gps.scan(true);
     digitalWrite(LED_RED, HIGH);
   }
 

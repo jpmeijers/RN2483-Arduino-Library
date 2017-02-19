@@ -23,13 +23,44 @@
  * Green waiting for a new GPS fix
  * Red: GPS fix taking a long time. Try to go outdoors.
  *
+ * To decode the binary payload, you can use the following
+ * javascript decoder function. It should work with the TTN console.
+ *
+function Decoder(bytes, port) {
+  // Decode an uplink message from a buffer
+  // (array) of bytes to an object of fields.
+  var decoded = {};
+
+  // if (port === 1) decoded.led = bytes[0];
+  decoded.lat = ((bytes[0]<<16)>>>0) + ((bytes[1]<<8)>>>0) + bytes[2];
+  decoded.lat = (decoded.lat / 16777215.0 * 180) - 90;
+
+  decoded.lon = ((bytes[3]<<16)>>>0) + ((bytes[4]<<8)>>>0) + bytes[5];
+  decoded.lon = (decoded.lon / 16777215.0 * 360) - 180;
+
+  var altValue = ((bytes[6]<<8)>>>0) + bytes[7];
+  var sign = bytes[6] & (1 << 7);
+  if(sign)
+  {
+    decoded.alt = 0xFFFF0000 | altValue;
+  }
+  else
+  {
+    decoded.alt = altValue;
+  }
+
+  decoded.hdop = bytes[8] / 10.0;
+
+  return decoded;
+}
+ *
  */
 #include <Arduino.h>
 #include "Sodaq_UBlox_GPS.h"
 #include <rn2xx3.h>
 
 //create an instance of the rn2xx3 library,
-//giving the software serial as port to use
+//giving Serial1 as stream to use for communication with the radio
 rn2xx3 myLora(Serial1);
 
 String toLog;
@@ -37,6 +68,7 @@ uint8_t txBuffer[9];
 uint32_t LatitudeBinary, LongitudeBinary;
 uint16_t altitudeGps;
 uint8_t hdopGps;
+int dr = 0;
 
 void setup()
 {
@@ -46,8 +78,7 @@ void setup()
     Serial1.begin(57600);
 
     // make sure usb serial connection is available,
-    // or after 10s go on anyway for 'headless' use of the
-    // node.
+    // or after 10s go on anyway for 'headless' use of the node.
     while ((!SerialUSB) && (millis() < 10000));
 
     SerialUSB.println("SODAQ LoRaONE TTN Mapper starting");
@@ -57,10 +88,17 @@ void setup()
     //transmit a startup message
     myLora.tx("TTN Mapper on Sodaq One");
 
+    // Enable next line to enable debug information of the sodaq_gps
+    //sodaq_gps.setDiag(SerialUSB);
+
     // initialize GPS
     sodaq_gps.init(GPS_ENABLE);
 
-    // myLora.setDR(0); //set the datarate at which we measure. DR7 is the best.
+    // Set the datarate/spreading factor at which we communicate.
+    // DR5 is the fastest and best to use. DR0 is the slowest.
+    myLora.setDR(dr);
+
+    // LED pins as outputs. HIGH=Off, LOW=On
     pinMode(LED_BLUE, OUTPUT);
     digitalWrite(LED_BLUE, HIGH);
     pinMode(LED_RED, OUTPUT);
@@ -107,6 +145,7 @@ void initialize_radio()
     join_result = myLora.init();
     digitalWrite(LED_BLUE, HIGH);
   }
+
   SerialUSB.println("Successfully joined TTN");
 
 }
@@ -116,13 +155,18 @@ void loop()
   SerialUSB.println("Waiting for GPS fix");
 
   digitalWrite(LED_GREEN, LOW);
-  sodaq_gps.scan();
+  // Keep the GPS enabled after we do a scan, increases accuracy
+  sodaq_gps.scan(true);
   digitalWrite(LED_GREEN, HIGH);
 
+  // if the latitude is 0, we likely do not have a GPS fix yet, so wait longer
   while(sodaq_gps.getLat()==0.0)
   {
+    SerialUSB.println("Latitude still 0.0, doing another scan");
+
     digitalWrite(LED_RED, LOW);
-    sodaq_gps.scan();
+    // Keep the GPS enabled after we do a scan, increases accuracy
+    sodaq_gps.scan(true);
     digitalWrite(LED_RED, HIGH);
   }
 
@@ -145,16 +189,33 @@ void loop()
   txBuffer[8] = hdopGps & 0xFF;
 
   toLog = "";
-  for(int i = 0; i<sizeof(txBuffer); i++)
+  for(size_t i = 0; i<sizeof(txBuffer); i++)
   {
     char buffer[3];
     sprintf(buffer, "%02x", txBuffer[i]);
     toLog = toLog + String(buffer);
   }
 
+  SerialUSB.print("Transmit on DR");
+  SerialUSB.print(dr);
+  SerialUSB.print(" coordinates ");
+  SerialUSB.print(sodaq_gps.getLat(), 13);
+  SerialUSB.print(" ");
+  SerialUSB.print(sodaq_gps.getLon(), 13);
+  SerialUSB.print(" altitude ");
+  SerialUSB.print(sodaq_gps.getAlt(), 1);
+  SerialUSB.print(" and HDOP ");
+  SerialUSB.print(sodaq_gps.getHDOP(), 2);
+  SerialUSB.print(" hex ");
   SerialUSB.println(toLog);
+
   digitalWrite(LED_BLUE, LOW);
   myLora.txBytes(txBuffer, sizeof(txBuffer));
   digitalWrite(LED_BLUE, HIGH);
+
+  // Cycle between datarate 0 and 5
+  //dr = (dr + 1) % 6;
+  //myLora.setDR(dr);
+
   SerialUSB.println("TX done");
 }
