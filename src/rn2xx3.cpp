@@ -629,7 +629,7 @@ bool rn2xx3::setFrequencyPlan(FREQ_PLAN fp)
         //mac set rx2 <dataRate> <frequency>
         //sendRawCommand(F("mac set rx2 5 868100000")); //use this for "strict" one channel gateways
         sendRawCommand(F("mac set rx2 3 869525000")); //use for "non-strict" one channel gateways
-        sendRawCommand(F("mac set ch dcycle 0 50")); //1% duty cycle for this channel
+        sendRawCommand(F("mac set ch dcycle 0 99")); //1% duty cycle for this channel
         sendRawCommand(F("mac set ch dcycle 1 65535")); //almost never use this channel
         sendRawCommand(F("mac set ch dcycle 2 65535")); //almost never use this channel
 
