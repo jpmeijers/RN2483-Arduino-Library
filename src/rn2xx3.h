@@ -88,7 +88,7 @@ class rn2xx3
     String sysver();
 
     /*
-     * Get the RN2xx3's SNR of the last received packet. Helpfult o debug link quality.
+     * Get the RN2xx3's SNR of the last received packet. Helpful to debug link quality.
      */
     String snr();
 
