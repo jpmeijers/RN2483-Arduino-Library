@@ -88,6 +88,11 @@ class rn2xx3
     String sysver();
 
     /*
+     * Get the RN2xx3's SNR of the last received packet. Helpfult o debug link quality.
+     */
+    String snr();
+
+    /*
      * Initialise the RN2xx3 and join the LoRa network (if applicable).
      * This function can only be called after calling initABP() or initOTAA().
      * The sole purpose of this function is to re-initialise the radio if it
@@ -241,7 +246,7 @@ class rn2xx3
     //This one falls in the "testing" address space.
     String _devAddr = "03FFBEEF";
 
-    // if you want to use another DevEUI than the hardware one 
+    // if you want to use another DevEUI than the hardware one
     // use this deveui for LoRa WAN
     String _deveui = "0011223344556677";
 
