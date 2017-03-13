@@ -99,11 +99,26 @@ void initialize_radio()
   Serial.println("Trying to join TTN");
   bool join_result = false;
 
-  //ABP: initABP(String addr, String AppSKey, String NwkSKey);
-  join_result = myLora.initABP("02017201", "8D7FFEF938589D95AAD928C2E2E7E48F", "AE17E567AECC8787F749A62F5541D522");
 
-  //OTAA: initOTAA(String AppEUI, String AppKey);
-  //join_result = myLora.initOTAA("70B3D57ED00001A6", "A23C96EE13804963F8C2BD6285448198");
+  /*
+   * ABP: initABP(String addr, String AppSKey, String NwkSKey);
+   * Paste the example code from the TTN console here:
+   */
+  const char *devAddr = "02017201";
+  const char *nwkSKey = "AE17E567AECC8787F749A62F5541D522";
+  const char *appSKey = "8D7FFEF938589D95AAD928C2E2E7E48F";
+
+  join_result = myLora.initABP(devAddr, appSKey, nwkSKey);
+
+  /*
+   * OTAA: initOTAA(String AppEUI, String AppKey);
+   * If you are using OTAA, paste the example code from the TTN console here:
+   */
+  //const char *appEui = "70B3D57ED00001A6";
+  //const char *appKey = "A23C96EE13804963F8C2BD6285448198";
+
+  //join_result = myLora.initOTAA(appEui, appKey);
+
 
   while(!join_result)
   {
