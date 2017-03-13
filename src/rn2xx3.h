@@ -88,11 +88,6 @@ class rn2xx3
     String sysver();
 
     /*
-     * Get the RN2xx3's SNR of the last received packet. Helpful to debug link quality.
-     */
-    String snr();
-
-    /*
      * Initialise the RN2xx3 and join the LoRa network (if applicable).
      * This function can only be called after calling initABP() or initOTAA().
      * The sole purpose of this function is to re-initialise the radio if it
@@ -221,6 +216,11 @@ class rn2xx3
      * Returns the last downlink message HEX string.
      */
     String getRx();
+
+    /*
+     * Get the RN2xx3's SNR of the last received packet. Helpful to debug link quality.
+     */
+    int getSNR();
 
     /*
      * Encode an ASCII string to a HEX string as needed when passed

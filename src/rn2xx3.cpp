@@ -50,13 +50,6 @@ String rn2xx3::sysver()
   return ver;
 }
 
-String rn2xx3::snr()
-{
-  String snr = sendRawCommand(F("radio get snr"));
-  snr.trim();
-  return snr;
-}
-
 RN2xx3_t rn2xx3::configureModuleType()
 {
   String version = sysver();
@@ -554,6 +547,13 @@ String rn2xx3::base16encode(String input)
 
 String rn2xx3::getRx() {
   return _rxMessenge;
+}
+
+int rn2xx3::getSNR()
+{
+  String snr = sendRawCommand(F("radio get snr"));
+  snr.trim();
+  return snr.toInt();
 }
 
 String rn2xx3::base16decode(String input)
