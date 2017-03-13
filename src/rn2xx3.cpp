@@ -50,6 +50,12 @@ String rn2xx3::sysver()
   return ver;
 }
 
+String rn2xx3::snr()
+{
+  String snr = sendRawCommand(F("radio get snr"));
+  snr.trim();
+  return snr;
+}
 
 RN2xx3_t rn2xx3::configureModuleType()
 {
@@ -277,7 +283,7 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
     case RN2483:
       sendRawCommand(F("mac reset 868"));
       // sendRawCommand(F("mac set rx2 3 869525000"));
-      // In the past we set the downlink channel here, 
+      // In the past we set the downlink channel here,
       // but setFrequencyPlan is a better place to do it.
       break;
     default:
@@ -647,8 +653,8 @@ bool rn2xx3::setFrequencyPlan(FREQ_PLAN fp)
       if(_moduleType == RN2483)
       {
       /*
-       * The <dutyCycle> value that needs to be configured can be 
-       * obtained from the actual duty cycle X (in percentage) 
+       * The <dutyCycle> value that needs to be configured can be
+       * obtained from the actual duty cycle X (in percentage)
        * using the following formula: <dutyCycle> = (100/X) – 1
        *
        *  10% -> 9
