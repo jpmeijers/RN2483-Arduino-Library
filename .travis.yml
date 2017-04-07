@@ -9,8 +9,8 @@ cache:
         - "~/.platformio"
 
 env:
-#    global:
-#        - PLATFORMIO_BUILD_FLAGS=-Werror
+    global:
+        - PLATFORMIO_BUILD_FLAGS=-Werror
     matrix:
         - PLATFORMIO_CI_SRC=examples/ArduinoUnoNano-basic PLATFORMIO_CI_EXTRA_ARGS="--board=uno"
         - PLATFORMIO_CI_SRC=examples/ArduinoUnoNano-downlink PLATFORMIO_CI_EXTRA_ARGS="--board=uno"
