@@ -50,7 +50,6 @@ String rn2xx3::sysver()
   return ver;
 }
 
-
 RN2xx3_t rn2xx3::configureModuleType()
 {
   String version = sysver();
@@ -277,7 +276,7 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
     case RN2483:
       sendRawCommand(F("mac reset 868"));
       // sendRawCommand(F("mac set rx2 3 869525000"));
-      // In the past we set the downlink channel here, 
+      // In the past we set the downlink channel here,
       // but setFrequencyPlan is a better place to do it.
       break;
     default:
@@ -550,6 +549,13 @@ String rn2xx3::getRx() {
   return _rxMessenge;
 }
 
+int rn2xx3::getSNR()
+{
+  String snr = sendRawCommand(F("radio get snr"));
+  snr.trim();
+  return snr.toInt();
+}
+
 String rn2xx3::base16decode(String input)
 {
   char charsIn[input.length()+1];
@@ -629,7 +635,7 @@ bool rn2xx3::setFrequencyPlan(FREQ_PLAN fp)
         //mac set rx2 <dataRate> <frequency>
         //sendRawCommand(F("mac set rx2 5 868100000")); //use this for "strict" one channel gateways
         sendRawCommand(F("mac set rx2 3 869525000")); //use for "non-strict" one channel gateways
-        sendRawCommand(F("mac set ch dcycle 0 50")); //1% duty cycle for this channel
+        sendRawCommand(F("mac set ch dcycle 0 99")); //1% duty cycle for this channel
         sendRawCommand(F("mac set ch dcycle 1 65535")); //almost never use this channel
         sendRawCommand(F("mac set ch dcycle 2 65535")); //almost never use this channel
 
@@ -647,8 +653,8 @@ bool rn2xx3::setFrequencyPlan(FREQ_PLAN fp)
       if(_moduleType == RN2483)
       {
       /*
-       * The <dutyCycle> value that needs to be configured can be 
-       * obtained from the actual duty cycle X (in percentage) 
+       * The <dutyCycle> value that needs to be configured can be
+       * obtained from the actual duty cycle X (in percentage)
        * using the following formula: <dutyCycle> = (100/X) – 1
        *
        *  10% -> 9

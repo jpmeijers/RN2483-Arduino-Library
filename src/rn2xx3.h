@@ -218,6 +218,11 @@ class rn2xx3
     String getRx();
 
     /*
+     * Get the RN2xx3's SNR of the last received packet. Helpful to debug link quality.
+     */
+    int getSNR();
+
+    /*
      * Encode an ASCII string to a HEX string as needed when passed
      * to the RN2xx3 module.
      */
@@ -241,7 +246,7 @@ class rn2xx3
     //This one falls in the "testing" address space.
     String _devAddr = "03FFBEEF";
 
-    // if you want to use another DevEUI than the hardware one 
+    // if you want to use another DevEUI than the hardware one
     // use this deveui for LoRa WAN
     String _deveui = "0011223344556677";
 
