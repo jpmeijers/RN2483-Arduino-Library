@@ -33,8 +33,10 @@ enum TX_RETURN_TYPE {
   TX_SUCCESS = 1, // The transmission was successful.
                   // Also the case when a confirmed message was acked.
 
-  TX_WITH_RX = 2  // A downlink message was received after the transmission.
+  TX_WITH_RX = 2,  // A downlink message was received after the transmission.
                   // This also implies that a confirmed message is acked.
+  RADIO_LISTEN_WITHOUT_RX = 3 // listened to radio 2 radio but nothing came back
+                    
 };
 
 class rn2xx3
@@ -136,6 +138,17 @@ class rn2xx3
      * DevEui: Device EUI as a uint8_t buffer (optional - set to 0 to use Hardware EUI)
      */
      bool initOTAA(uint8_t * AppEUI, uint8_t * AppKey, uint8_t * DevEui);
+    
+    /*
+     * Sets the rn2xx3 to listen/send transmissions from/to other rn2xx3's
+     */
+
+     bool initP2P();
+
+    /*
+     * Listen to 
+     */
+     TX_RETURN_TYPE listenP2P();
 
     /*
      * Transmit the provided data. The data is hex-encoded by this library,
@@ -239,6 +252,9 @@ class rn2xx3
 
     RN2xx3_t _moduleType = RN_NA;
 
+    // mac pause and radio to radio transmissions
+    bool _radio2radio = false;
+    
     //Flags to switch code paths. Default is to use OTAA.
     bool _otaa = true;
 
