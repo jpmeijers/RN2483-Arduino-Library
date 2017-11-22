@@ -92,8 +92,6 @@ String rn2xx3::deveui()
 
 bool rn2xx3::init()
 {
-  _radio2radio = false;
-  
   if(_appskey=="0") //appskey variable is set by both OTAA and ABP
   {
     return false;
@@ -325,6 +323,7 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
   }
 }
 
+<<<<<<< HEAD
 bool rn2xx3::initP2P() {
   _radio2radio = true;
   
@@ -379,6 +378,8 @@ bool rn2xx3::initP2P() {
 }
 
 
+=======
+>>>>>>> parent of 795d86c... Added point to point communication
 TX_RETURN_TYPE rn2xx3::tx(String data)
 {
   return txUncnf(data); //we are unsure which mode we're in. Better not to wait for acks.
@@ -427,8 +428,11 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
       return TX_FAIL;
     }
 
+<<<<<<< HEAD
     if(_radio2radio) command.replace("mac", "radio");
     
+=======
+>>>>>>> parent of 795d86c... Added point to point communication
     _serial.print(command);
     if(shouldEncode)
     {
@@ -484,18 +488,15 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
         send_success = true;
         return TX_SUCCESS;
       }
-      else if(receivedData.startsWith("radio_rx")) {
-        //example: radio_rx 54657374696E6720313233
-        _rxMessenge = receivedData.substring(receivedData.indexOf(' ', 1)+1);
-        send_success = true;
-        return TX_WITH_RX;
-      }
-      
+
       else if(receivedData.startsWith("radio_err"))
       {
         //This should never happen. If it does, something major is wrong.
+<<<<<<< HEAD
         // or someone added radio 2 radio support and did it wrong ;-)
         SerialUSB.println("Radio error"); // remove me, debugging
+=======
+>>>>>>> parent of 795d86c... Added point to point communication
         init();
       }
 
