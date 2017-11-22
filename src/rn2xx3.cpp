@@ -92,6 +92,8 @@ String rn2xx3::deveui()
 
 bool rn2xx3::init()
 {
+  _radio2radio = false;
+  
   if(_appskey=="0") //appskey variable is set by both OTAA and ABP
   {
     return false;
@@ -323,7 +325,6 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
   }
 }
 
-<<<<<<< HEAD
 bool rn2xx3::initP2P() {
   _radio2radio = true;
   
@@ -341,7 +342,7 @@ bool rn2xx3::initP2P() {
 
   switch (_moduleType) {
     case RN2903:
-      sendRawCommand(F("radio set freq 923300000"));
+      sendRawCommand(F("radio set freq 869100000"));
       break;
     case RN2483:
       sendRawCommand(F("radio set freq 869100000"));
@@ -368,8 +369,6 @@ bool rn2xx3::initP2P() {
 
   sendRawCommand(F("radio set cr 4/5"));
 
-  sendRawCommand(F("radio set wdt 0"));// continues reception
-
   sendRawCommand(F("radio set sync 12"));
 
   sendRawCommand(F("radio set bw 125"));
@@ -377,9 +376,31 @@ bool rn2xx3::initP2P() {
   return true;
 }
 
+TX_RETURN_TYPE rn2xx3::listenP2P() {
+  String receivedData;
+  bool mustStop = false;
+  
+  receivedData = sendRawCommand(F("radio rx 0")); // don't put this in receiveddata we want to ignore the first ok
+  while(!mustStop) {
+    receivedData = _serial.readStringUntil('\n');
+    
+    if(receivedData.startsWith("radio_err")) {
+      return RADIO_LISTEN_WITHOUT_RX; // timeout
+    } else if(receivedData.startsWith("busy")) {
+      // just wait
+    } else if(receivedData.startsWith("radio_rx")) {
+      //example: radio_rx 54657374696E6720313233
+      _rxMessenge = receivedData.substring(receivedData.indexOf(' ', 1)+1);
+     
+      return TX_WITH_RX;
+    } 
+    
+  }
+    
+  
+  
+}
 
-=======
->>>>>>> parent of 795d86c... Added point to point communication
 TX_RETURN_TYPE rn2xx3::tx(String data)
 {
   return txUncnf(data); //we are unsure which mode we're in. Better not to wait for acks.
@@ -428,15 +449,18 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
       return TX_FAIL;
     }
 
-<<<<<<< HEAD
-    if(_radio2radio) command.replace("mac", "radio");
+    if(_radio2radio) {
+      command.replace("mac", "radio");
+      command.replace("uncnf 1 ", "");
+      command.replace("cnf 1 ", "");
+    }
     
-=======
->>>>>>> parent of 795d86c... Added point to point communication
+    
+    
     _serial.print(command);
     if(shouldEncode)
     {
-      sendEncoded(data);
+      sendEncoded(data);      
     }
     else
     {
@@ -446,7 +470,9 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
 
     String receivedData = _serial.readStringUntil('\n');
     //TODO: Debug print on receivedData
-
+    
+    
+    
     if(receivedData.startsWith("ok"))
     {
       _serial.setTimeout(30000);
@@ -484,19 +510,23 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
 
       else if(receivedData.startsWith("radio_tx_ok"))
       {
+        
         //SUCCESS!!
         send_success = true;
         return TX_SUCCESS;
       }
-
+      else if(receivedData.startsWith("radio_rx")) {
+        //example: radio_rx 54657374696E6720313233
+        _rxMessenge = receivedData.substring(receivedData.indexOf(' ', 1)+1);
+        send_success = true;
+        return TX_WITH_RX;
+      }
+      
       else if(receivedData.startsWith("radio_err"))
       {
         //This should never happen. If it does, something major is wrong.
-<<<<<<< HEAD
         // or someone added radio 2 radio support and did it wrong ;-)
-        SerialUSB.println("Radio error"); // remove me, debugging
-=======
->>>>>>> parent of 795d86c... Added point to point communication
+        
         init();
       }
 
@@ -505,6 +535,12 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
         //unknown response
         //init();
       }
+    }
+    else if(receivedData.startsWith("radio_rx")) {
+      //example: radio_rx 54657374696E6720313233
+      _rxMessenge = receivedData.substring(receivedData.indexOf(' ', 1)+1);
+      send_success = true;
+      return TX_WITH_RX;
     }
 
     else if(receivedData.startsWith("invalid_param"))
