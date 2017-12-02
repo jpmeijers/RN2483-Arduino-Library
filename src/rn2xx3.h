@@ -246,6 +246,11 @@ class rn2xx3
      * string received from the RN2xx3.
      */
     String base16decode(String);
+    /*
+     * Decode a HEX string to an Byte array. Useful to receive
+     * bytes from the RN2xx3.
+     */
+    uint8_t * base16decodeBytes(String);
 
   private:
     Stream& _serial;

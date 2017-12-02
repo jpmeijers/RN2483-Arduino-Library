@@ -92,6 +92,7 @@ String rn2xx3::deveui()
 
 bool rn2xx3::init()
 {
+  if(_radio2radio)sendRawCommand(F("mac resume"));
   _radio2radio = false;
   
   if(_appskey=="0") //appskey variable is set by both OTAA and ABP
@@ -389,8 +390,11 @@ TX_RETURN_TYPE rn2xx3::listenP2P() {
     } else if(receivedData.startsWith("busy")) {
       // just wait
     } else if(receivedData.startsWith("radio_rx")) {
-      //example: radio_rx 54657374696E6720313233
-      _rxMessenge = receivedData.substring(receivedData.indexOf(' ', 1)+1);
+      //example: radio_rx  54657374696E6720313233
+	SerialUSB.print("receivedData:");
+	SerialUSB.println(receivedData);
+
+      _rxMessenge = receivedData.substring(receivedData.indexOf(' ', 9)+1);
      
       return TX_WITH_RX;
     } 
@@ -458,12 +462,22 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
     
     
     _serial.print(command);
+	SerialUSB.print("Command: ");
+	SerialUSB.print(command);
+	SerialUSB.println(".");
     if(shouldEncode)
     {
       sendEncoded(data);      
+	SerialUSB.print("encoded: ");
+	SerialUSB.print(data);
+	SerialUSB.println(".");
     }
     else
     {
+	SerialUSB.print("plain: ");
+	SerialUSB.print(data);
+	SerialUSB.println(".");
+
       _serial.print(data);
     }
     _serial.println();
@@ -516,8 +530,11 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
         return TX_SUCCESS;
       }
       else if(receivedData.startsWith("radio_rx")) {
-        //example: radio_rx 54657374696E6720313233
-        _rxMessenge = receivedData.substring(receivedData.indexOf(' ', 1)+1);
+        //example: radio_rx  54657374696E6720313233
+	SerialUSB.print("receivedData:");
+	SerialUSB.println(receivedData);
+	        
+	_rxMessenge = receivedData.substring(receivedData.indexOf(' ', 9)+1);
         send_success = true;
         return TX_WITH_RX;
       }
@@ -537,8 +554,11 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
       }
     }
     else if(receivedData.startsWith("radio_rx")) {
-      //example: radio_rx 54657374696E6720313233
-      _rxMessenge = receivedData.substring(receivedData.indexOf(' ', 1)+1);
+      //example: radio_rx  54657374696E6720313233
+	SerialUSB.print("receivedData:");
+	SerialUSB.println(receivedData);
+
+      _rxMessenge = receivedData.substring(receivedData.indexOf(' ', 9)+1);
       send_success = true;
       return TX_WITH_RX;
     }
@@ -649,6 +669,8 @@ String rn2xx3::base16encode(String input)
 }
 
 String rn2xx3::getRx() {
+	SerialUSB.print("Get rx: ");
+	SerialUSB.println(_rxMessenge);
   return _rxMessenge;
 }
 
@@ -667,6 +689,7 @@ String rn2xx3::base16decode(String input)
   input.toCharArray(charsIn, input.length()+1);
 
   unsigned i = 0;
+  
   for(i = 0; i<input.length()/2+1; i++)
   {
     if(charsIn[i*2] == '\0') break;
@@ -684,6 +707,35 @@ String rn2xx3::base16decode(String input)
   }
   charsOut[i] = '\0';
   return charsOut;
+}
+
+uint8_t * rn2xx3::base16decodeBytes(String input)
+{
+  if(input.length() > 0) {
+   uint8_t* bytesOut = (uint8_t*) malloc(input.length() * sizeof(uint8_t));
+  
+  char charsIn[input.length()+1];
+  
+  input.trim();
+  input.toCharArray(charsIn, input.length()+1);
+
+  unsigned i = 0;
+  SerialUSB.print("out: ");
+  for(i = 0; i<input.length()/2+1; i++)
+  {
+    if(charsIn[i*2] == '\0') break;
+    if(charsIn[i*2+1] == '\0') break;
+
+    char toDo[2];
+    toDo[0] = charsIn[i*2];
+    toDo[1] = charsIn[i*2+1];
+    int out = strtoul(toDo, 0, 16);
+
+    *bytesOut++ = (uint8_t) out;	
+  }   
+  return bytesOut;
+ }
+ return 0;
 }
 
 void rn2xx3::setDR(int dr)
