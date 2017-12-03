@@ -731,7 +731,7 @@ uint8_t * rn2xx3::base16decodeBytes(String input)
     toDo[1] = charsIn[i*2+1];
     int out = strtoul(toDo, 0, 16);
 
-    *bytesOut++ = (uint8_t) out;	
+    bytesOut[i] = (uint8_t) out;	
   }   
   return bytesOut;
  }
