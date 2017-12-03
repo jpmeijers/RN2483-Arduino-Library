@@ -390,10 +390,7 @@ TX_RETURN_TYPE rn2xx3::listenP2P() {
     } else if(receivedData.startsWith("busy")) {
       // just wait
     } else if(receivedData.startsWith("radio_rx")) {
-      //example: radio_rx  54657374696E6720313233
-	SerialUSB.print("receivedData:");
-	SerialUSB.println(receivedData);
-
+      //example: radio_rx  54657374696E6720313233	
       _rxMessenge = receivedData.substring(receivedData.indexOf(' ', 9)+1);
      
       return TX_WITH_RX;
@@ -461,23 +458,13 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
     
     
     
-    _serial.print(command);
-	SerialUSB.print("Command: ");
-	SerialUSB.print(command);
-	SerialUSB.println(".");
+    _serial.print(command);	
     if(shouldEncode)
     {
       sendEncoded(data);      
-	SerialUSB.print("encoded: ");
-	SerialUSB.print(data);
-	SerialUSB.println(".");
     }
     else
     {
-	SerialUSB.print("plain: ");
-	SerialUSB.print(data);
-	SerialUSB.println(".");
-
       _serial.print(data);
     }
     _serial.println();
@@ -530,10 +517,7 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
         return TX_SUCCESS;
       }
       else if(receivedData.startsWith("radio_rx")) {
-        //example: radio_rx  54657374696E6720313233
-	SerialUSB.print("receivedData:");
-	SerialUSB.println(receivedData);
-	        
+        //example: radio_rx  54657374696E6720313233       
 	_rxMessenge = receivedData.substring(receivedData.indexOf(' ', 9)+1);
         send_success = true;
         return TX_WITH_RX;
@@ -555,9 +539,6 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
     }
     else if(receivedData.startsWith("radio_rx")) {
       //example: radio_rx  54657374696E6720313233
-	SerialUSB.print("receivedData:");
-	SerialUSB.println(receivedData);
-
       _rxMessenge = receivedData.substring(receivedData.indexOf(' ', 9)+1);
       send_success = true;
       return TX_WITH_RX;
@@ -669,8 +650,6 @@ String rn2xx3::base16encode(String input)
 }
 
 String rn2xx3::getRx() {
-	SerialUSB.print("Get rx: ");
-	SerialUSB.println(_rxMessenge);
   return _rxMessenge;
 }
 
@@ -720,7 +699,6 @@ uint8_t * rn2xx3::base16decodeBytes(String input)
   input.toCharArray(charsIn, input.length()+1);
 
   unsigned i = 0;
-  SerialUSB.print("out: ");
   for(i = 0; i<input.length()/2+1; i++)
   {
     if(charsIn[i*2] == '\0') break;
