@@ -327,6 +327,7 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
 }
 
 bool rn2xx3::initP2P() {
+  sendRawCommand(F("sys reset"));
   _radio2radio = true;
   
   String receivedData;
@@ -392,7 +393,7 @@ TX_RETURN_TYPE rn2xx3::listenP2P() {
     } else if(receivedData.startsWith("radio_rx")) {
       //example: radio_rx  54657374696E6720313233	
       _rxMessenge = receivedData.substring(receivedData.indexOf(' ', 9)+1);
-     
+      
       return TX_WITH_RX;
     } 
     
@@ -650,7 +651,8 @@ String rn2xx3::base16encode(String input)
 }
 
 String rn2xx3::getRx() {
-  return _rxMessenge;
+  
+ return _rxMessenge;
 }
 
 int rn2xx3::getSNR()
