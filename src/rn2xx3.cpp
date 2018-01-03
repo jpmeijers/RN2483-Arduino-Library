@@ -347,7 +347,7 @@ bool rn2xx3::initP2P() {
       sendRawCommand(F("radio set freq 869100000"));
       break;
     case RN2483:
-      sendRawCommand(F("radio set freq 869100000"));
+      sendRawCommand(F("radio set freq 868000000"));
       
       break;
     default:
