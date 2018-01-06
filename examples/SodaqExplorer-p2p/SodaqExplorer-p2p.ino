@@ -101,7 +101,7 @@ void loop()
 
     led_off();
 
-    for(int i = 0; i < 3; i++)
+    for(int i = 0; i < 15000/500; i++) // 15 second listen then send ^
     switch(myLora.listenP2P()) {
       case TX_WITH_RX:
       {

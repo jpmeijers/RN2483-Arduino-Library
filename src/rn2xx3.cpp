@@ -375,6 +375,8 @@ bool rn2xx3::initP2P() {
 
   sendRawCommand(F("radio set bw 125"));
 
+  sendRawCommand(F("radio set wdt 500"));
+
   return true;
 }
 
@@ -393,7 +395,7 @@ TX_RETURN_TYPE rn2xx3::listenP2P() {
     } else if(receivedData.startsWith("radio_rx")) {
       //example: radio_rx  54657374696E6720313233	
       _rxMessenge = receivedData.substring(receivedData.indexOf(' ', 9)+1);
-      
+      initP2P(); // to remove last messenge because it keeps repeating
       return TX_WITH_RX;
     } 
     
