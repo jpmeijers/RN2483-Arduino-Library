@@ -92,6 +92,9 @@ String rn2xx3::deveui()
 
 bool rn2xx3::init()
 {
+  if(_radio2radio)sendRawCommand(F("mac resume"));
+  _radio2radio = false;
+  
   if(_appskey=="0") //appskey variable is set by both OTAA and ABP
   {
     return false;
@@ -323,6 +326,85 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
   }
 }
 
+bool rn2xx3::initP2P() {
+  sendRawCommand(F("sys reset"));
+  _radio2radio = true;
+  
+  String receivedData;
+
+  //clear serial buffer
+  while(_serial.available())
+    _serial.read();
+  
+  configureModuleType();
+
+  sendRawCommand(F("mac pause"));
+
+  sendRawCommand(F("radio set mod lora"));
+
+  switch (_moduleType) {
+    case RN2903:
+      sendRawCommand(F("radio set freq 869100000"));
+      break;
+    case RN2483:
+      sendRawCommand(F("radio set freq 868000000"));
+      
+      break;
+    default:
+      // we shouldn't go forward with the init
+      return false;
+  }
+
+  sendRawCommand(F("radio set pwr 14"));
+
+  sendRawCommand(F("radio set sf sf7"));
+
+  sendRawCommand(F("radio set afcbw 41.7"));
+
+  sendRawCommand(F("radio set rxbw 125"));
+
+  sendRawCommand(F("radio set prlen 8"));
+
+  sendRawCommand(F("radio set crc on"));
+
+  sendRawCommand(F("radio set iqi off"));
+
+  sendRawCommand(F("radio set cr 4/5"));
+
+  sendRawCommand(F("radio set sync 12"));
+
+  sendRawCommand(F("radio set bw 125"));
+
+  sendRawCommand(F("radio set wdt 500"));
+
+  return true;
+}
+
+TX_RETURN_TYPE rn2xx3::listenP2P() {
+  String receivedData;
+  bool mustStop = false;
+  
+  receivedData = sendRawCommand(F("radio rx 0")); // don't put this in receiveddata we want to ignore the first ok
+  while(!mustStop) {
+    receivedData = _serial.readStringUntil('\n');
+    
+    if(receivedData.startsWith("radio_err")) {
+      return RADIO_LISTEN_WITHOUT_RX; // timeout
+    } else if(receivedData.startsWith("busy")) {
+      // just wait
+    } else if(receivedData.startsWith("radio_rx")) {
+      //example: radio_rx  54657374696E6720313233	
+      _rxMessenge = receivedData.substring(receivedData.indexOf(' ', 9)+1);
+      initP2P(); // to remove last messenge because it keeps repeating
+      return TX_WITH_RX;
+    } 
+    
+  }
+    
+  
+  
+}
+
 TX_RETURN_TYPE rn2xx3::tx(String data)
 {
   return txUncnf(data); //we are unsure which mode we're in. Better not to wait for acks.
@@ -371,10 +453,18 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
       return TX_FAIL;
     }
 
-    _serial.print(command);
+    if(_radio2radio) {
+      command.replace("mac", "radio");
+      command.replace("uncnf 1 ", "");
+      command.replace("cnf 1 ", "");
+    }
+    
+    
+    
+    _serial.print(command);	
     if(shouldEncode)
     {
-      sendEncoded(data);
+      sendEncoded(data);      
     }
     else
     {
@@ -384,7 +474,9 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
 
     String receivedData = _serial.readStringUntil('\n');
     //TODO: Debug print on receivedData
-
+    
+    
+    
     if(receivedData.startsWith("ok"))
     {
       _serial.setTimeout(30000);
@@ -422,14 +514,23 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
 
       else if(receivedData.startsWith("radio_tx_ok"))
       {
+        
         //SUCCESS!!
         send_success = true;
         return TX_SUCCESS;
       }
-
+      else if(receivedData.startsWith("radio_rx")) {
+        //example: radio_rx  54657374696E6720313233       
+	_rxMessenge = receivedData.substring(receivedData.indexOf(' ', 9)+1);
+        send_success = true;
+        return TX_WITH_RX;
+      }
+      
       else if(receivedData.startsWith("radio_err"))
       {
         //This should never happen. If it does, something major is wrong.
+        // or someone added radio 2 radio support and did it wrong ;-)
+        
         init();
       }
 
@@ -438,6 +539,12 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
         //unknown response
         //init();
       }
+    }
+    else if(receivedData.startsWith("radio_rx")) {
+      //example: radio_rx  54657374696E6720313233
+      _rxMessenge = receivedData.substring(receivedData.indexOf(' ', 9)+1);
+      send_success = true;
+      return TX_WITH_RX;
     }
 
     else if(receivedData.startsWith("invalid_param"))
@@ -546,7 +653,8 @@ String rn2xx3::base16encode(String input)
 }
 
 String rn2xx3::getRx() {
-  return _rxMessenge;
+  
+ return _rxMessenge;
 }
 
 int rn2xx3::getSNR()
@@ -564,6 +672,7 @@ String rn2xx3::base16decode(String input)
   input.toCharArray(charsIn, input.length()+1);
 
   unsigned i = 0;
+  
   for(i = 0; i<input.length()/2+1; i++)
   {
     if(charsIn[i*2] == '\0') break;
@@ -581,6 +690,34 @@ String rn2xx3::base16decode(String input)
   }
   charsOut[i] = '\0';
   return charsOut;
+}
+
+uint8_t * rn2xx3::base16decodeBytes(String input)
+{
+  if(input.length() > 0) {
+   uint8_t* bytesOut = (uint8_t*) malloc(input.length() * sizeof(uint8_t));
+  
+  char charsIn[input.length()+1];
+  
+  input.trim();
+  input.toCharArray(charsIn, input.length()+1);
+
+  unsigned i = 0;
+  for(i = 0; i<input.length()/2+1; i++)
+  {
+    if(charsIn[i*2] == '\0') break;
+    if(charsIn[i*2+1] == '\0') break;
+
+    char toDo[2];
+    toDo[0] = charsIn[i*2];
+    toDo[1] = charsIn[i*2+1];
+    int out = strtoul(toDo, 0, 16);
+
+    bytesOut[i] = (uint8_t) out;	
+  }   
+  return bytesOut;
+ }
+ return 0;
 }
 
 void rn2xx3::setDR(int dr)
