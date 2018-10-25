@@ -174,6 +174,7 @@ bool rn2xx3::initOTAA(String AppEUI, String AppKey, String DevEUI)
   {
     sendRawCommand(F("mac set pwridx 1"));
   }
+  sendRawCommand(F("mac set dr 5")); //0= min, 7=max
 
   // TTN does not yet support Adaptive Data Rate.
   // Using it is also only necessary in limited situations.
