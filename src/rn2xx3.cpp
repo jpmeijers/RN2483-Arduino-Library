@@ -3,7 +3,7 @@
  *
  * @Author JP Meijers
  * @Author Nicolas Schteinschraber
- * @Date 18/12/2015
+ * @Date 28/12/2018
  *
  */
 
@@ -724,6 +724,38 @@ bool rn2xx3::setFrequencyPlan(FREQ_PLAN fp)
     {
     /*
      * Most of the TTN_US frequency plan was copied from:
+     * https://github.com/TheThingsNetwork/arduino-device-lib
+     */
+      if(_moduleType == RN2903)
+      {
+        for(int channel=0; channel<72; channel++)
+        {
+          // Build command string. First init, then add int.
+          String command = F("mac set ch status ");
+          command += channel;
+
+          if(channel>=8 && channel<16)
+          {
+            sendRawCommand(command+F(" on"));
+          }
+          else
+          {
+            sendRawCommand(command+F(" off"));
+          }
+        }
+        returnValue = true;
+      }
+      else
+      {
+        returnValue = false;
+      }
+      break;
+    }
+
+    case TTN_AU:
+    {
+    /*
+     * Most of the TTN_AU frequency plan was copied from:
      * https://github.com/TheThingsNetwork/arduino-device-lib
      */
       if(_moduleType == RN2903)

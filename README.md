@@ -14,7 +14,7 @@ Examples with this library are meant to be used to contribute to TTN Mapper (htt
 # Software Serial
 This library supports hardware and software serial for communication with the RN2xx3 module. Se the examples for clarification how to do this.
 
-When using hardware serial for the RN2xx3, but software serial for a chatty device like a GPS module, it can happen that the communication with the RN2xx3 is unsuccessful. This is due to the hardware serial receive interrupts being paused during the reception of a software serial character. When using 9600 baud for the gps, and 57600 for the RN2xx3, this effect is even wors. A workaround for this situation is to pause the software serial reception when running any LoRa/radio commands. Use: `softwareSerial.end()` to pause the software serial and `softwareSerial.begin(9600)` to start it again.
+When using hardware serial for the RN2xx3, but software serial for a chatty device like a GPS module, it can happen that the communication with the RN2xx3 is unsuccessful. This is due to the hardware serial receive interrupts being paused during the reception of a software serial character. When using 9600 baud for the gps, and 57600 for the RN2xx3, this effect is even worse. A workaround for this situation is to pause the software serial reception when running any LoRa/radio commands. Use: `softwareSerial.end()` to pause the software serial and `softwareSerial.begin(9600)` to start it again.
 
 # License
 All code in this repository falls under the Apache v2.0 license, unless otherwise stated in the header of the respective file.
