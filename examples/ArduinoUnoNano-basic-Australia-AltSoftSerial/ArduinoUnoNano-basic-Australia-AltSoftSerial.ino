@@ -1,7 +1,7 @@
 /*
  * Author: JP Meijers
  * Edited: Lachlan Etherton
- * Date: 2018-12-28
+ * Date: 2016-02-07
  * Previous filename: TTN-Mapper-TTNEnschede-V1
  *
  * This program is meant to be used with an Arduino UNO or NANO, conencted to an RNxx3 radio module for the AU915 frequency plan.
@@ -103,7 +103,6 @@ void initialize_radio()
   Serial.println("Trying to join TTN");
   bool join_result = false;
 
-
   /*
    * ABP: initABP(String addr, String AppSKey, String NwkSKey);
    * Paste the example code from the TTN console here:
@@ -123,7 +122,6 @@ void initialize_radio()
 
   //join_result = myLora.initOTAA(appEui, appKey);
 
-
   while(!join_result)
   {
     Serial.println("Unable to join. Are your keys correct and are you in the middle of the outback?");
@@ -132,6 +130,8 @@ void initialize_radio()
   }
   Serial.println("Successfully joined TTN. You beauty!");
 
+  // setting the frequency plan to AU915
+  myLora.setFrequencyPlan(TTN_AU);
 }
 
 // the loop routine runs over and over again forever:
@@ -140,7 +140,7 @@ void loop()
     led_on();
 
     Serial.println("TXing");
-    myLora.tx("Oi!"); // one byte, blocking function
+    myLora.tx("!"); // one byte, blocking function
 
     led_off();
     delay(200);

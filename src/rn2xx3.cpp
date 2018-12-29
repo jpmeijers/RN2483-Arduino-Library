@@ -721,37 +721,7 @@ bool rn2xx3::setFrequencyPlan(FREQ_PLAN fp)
     }
 
     case TTN_US:
-    {
-    /*
-     * Most of the TTN_US frequency plan was copied from:
-     * https://github.com/TheThingsNetwork/arduino-device-lib
-     */
-      if(_moduleType == RN2903)
-      {
-        for(int channel=0; channel<72; channel++)
-        {
-          // Build command string. First init, then add int.
-          String command = F("mac set ch status ");
-          command += channel;
-
-          if(channel>=8 && channel<16)
-          {
-            sendRawCommand(command+F(" on"));
-          }
-          else
-          {
-            sendRawCommand(command+F(" off"));
-          }
-        }
-        returnValue = true;
-      }
-      else
-      {
-        returnValue = false;
-      }
-      break;
-    }
-
+      // Same setup as the Australian frequency plan
     case TTN_AU:
     {
     /*

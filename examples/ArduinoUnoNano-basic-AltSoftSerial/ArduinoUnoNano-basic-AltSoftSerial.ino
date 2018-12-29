@@ -1,7 +1,7 @@
 /*
  * Author: JP Meijers
  * Edited: Lachlan Etherton
- * Date: 2018-12-28
+ * Date: 2016-02-07
  * Previous filename: TTN-Mapper-TTNEnschede-V1
  *
  * This program is meant to be used with an Arduino UNO or NANO, conencted to an RNxx3 radio module.
