@@ -1,7 +1,7 @@
 /*
  * Author: JP Meijers
  * Edited: Lachlan Etherton
- * Date: 2016-02-07
+ * Date: 2018-12-28
  * Previous filename: TTN-Mapper-TTNEnschede-V1
  *
  * This program is meant to be used with an Arduino UNO or NANO, conencted to an RNxx3 radio module.
@@ -130,6 +130,9 @@ void initialize_radio()
   Serial.println("Successfully joined TTN");
 
 }
+
+// Setting the frequency plan to either TTN_US or TTN_AU. Not needed for OTAA or TTN_EU.
+//myLora.setFrequencyPlan(TTN_AU);
 
 // the loop routine runs over and over again forever:
 void loop()

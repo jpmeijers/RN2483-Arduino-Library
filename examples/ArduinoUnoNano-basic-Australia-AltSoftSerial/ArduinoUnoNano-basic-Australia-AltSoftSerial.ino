@@ -1,7 +1,7 @@
 /*
  * Author: JP Meijers
  * Edited: Lachlan Etherton
- * Date: 2016-02-07
+ * Date: 2018-28-12
  * Previous filename: TTN-Mapper-TTNEnschede-V1
  *
  * This program is meant to be used with an Arduino UNO or NANO, conencted to an RNxx3 radio module for the AU915 frequency plan.
@@ -93,6 +93,9 @@ void initialize_radio()
     hweui = myLora.hweui();
   }
 
+  // Setting the frequency plan to AU915
+  myLora.setFrequencyPlan(TTN_AU);
+
   // print out the HWEUI so that we can register it via ttnctl
   Serial.println("When using OTAA, register this DevEUI: ");
   Serial.println(myLora.hweui());
@@ -130,7 +133,7 @@ void initialize_radio()
   }
   Serial.println("Successfully joined TTN. You beauty!");
 
-  // setting the frequency plan to AU915
+  // Setting the frequency plan to TTN_AU. Not needed for OTAA.
   myLora.setFrequencyPlan(TTN_AU);
 }
 
@@ -140,7 +143,7 @@ void loop()
     led_on();
 
     Serial.println("TXing");
-    myLora.tx("!"); // one byte, blocking function
+    myLora.tx("Oi!"); // three bytez, blocking function
 
     led_off();
     delay(200);
