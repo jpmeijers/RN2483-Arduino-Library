@@ -138,7 +138,7 @@ void loop()
     led_on();
 
     Serial.println("TXing");
-    myLora.tx("Oi!"); // three byte, blocking function
+    myLora.tx("Oi!"); // three bytes, blocking function
 
     led_off();
     delay(200);
