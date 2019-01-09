@@ -3,7 +3,7 @@
  *
  * @Author JP Meijers
  * @Author Nicolas Schteinschraber
- * @Date 18/12/2015
+ * @Date 28/12/2018
  *
  */
 
@@ -721,9 +721,11 @@ bool rn2xx3::setFrequencyPlan(FREQ_PLAN fp)
     }
 
     case TTN_US:
+      // Same setup as the Australian frequency plan
+    case TTN_AU:
     {
     /*
-     * Most of the TTN_US frequency plan was copied from:
+     * Most of the TTN_AU frequency plan was copied from:
      * https://github.com/TheThingsNetwork/arduino-device-lib
      */
       if(_moduleType == RN2903)

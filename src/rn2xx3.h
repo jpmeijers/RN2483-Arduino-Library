@@ -3,7 +3,7 @@
  *
  * @Author JP Meijers
  * @Author Nicolas Schteinschraber
- * @Date 18/12/2015
+ * @Date 28/12/2018
  *
  */
 
@@ -19,10 +19,11 @@ enum RN2xx3_t {
 };
 
 enum FREQ_PLAN {
-  SINGLE_CHANNEL_EU,
-  TTN_EU,
-  TTN_US,
-  DEFAULT_EU
+  SINGLE_CHANNEL_EU, // Single channel Europe frequency plan
+  TTN_EU, // Complete Europe frequency plan
+  TTN_US, // Complete United States frequency plan
+  TTN_AU, // Complete Australian frequency plan
+  DEFAULT_EU // The default Europe fequency plan
 };
 
 enum TX_RETURN_TYPE {

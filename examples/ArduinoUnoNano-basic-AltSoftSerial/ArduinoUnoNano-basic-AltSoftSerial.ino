@@ -1,5 +1,6 @@
 /*
  * Author: JP Meijers
+ * Edited: Lachlan Etherton
  * Date: 2018-12-28
  * Previous filename: TTN-Mapper-TTNEnschede-V1
  *
@@ -20,8 +21,8 @@
  *
  * Connect the RN2xx3 as follows:
  * RN2xx3 -- Arduino
- * Uart TX -- 10
- * Uart RX -- 11
+ * Uart TX -- 8
+ * Uart RX -- 9
  * Reset -- 12
  * Vcc -- 3.3V
  * Gnd -- Gnd
@@ -36,9 +37,9 @@
  *
  */
 #include <rn2xx3.h>
-#include <SoftwareSerial.h>
+#include <AltSoftSerial.h>
 
-SoftwareSerial mySerial(10, 11); // RX, TX
+AltSoftSerial mySerial;
 
 //create an instance of the rn2xx3 library,
 //giving the software serial as port to use
@@ -89,9 +90,6 @@ void initialize_radio()
     hweui = myLora.hweui();
   }
 
-  // Setting the frequency plan to either TTN_US or TTN_AU. Not needed for OTAA or TTN_EU.
-  //myLora.setFrequencyPlan(TTN_AU);
-
   //print out the HWEUI so that we can register it via ttnctl
   Serial.println("When using OTAA, register this DevEUI: ");
   Serial.println(myLora.hweui());
@@ -132,6 +130,9 @@ void initialize_radio()
   Serial.println("Successfully joined TTN");
 
 }
+
+// Setting the frequency plan to either TTN_US or TTN_AU. Not needed for OTAA or TTN_EU.
+//myLora.setFrequencyPlan(TTN_AU);
 
 // the loop routine runs over and over again forever:
 void loop()
