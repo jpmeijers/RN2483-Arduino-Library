@@ -139,7 +139,7 @@ void loop()
     myLora.tx("!"); //one byte, blocking function
 
     led_off();
-    delay(200);
+    delay(30000);
 }
 
 void led_on()
