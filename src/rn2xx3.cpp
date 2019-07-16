@@ -90,6 +90,12 @@ String rn2xx3::deveui()
   return (sendRawCommand(F("mac get deveui")));
 }
 
+void rn2xx3::setdeveui( const char *deveui ) {
+    if ( deveui != NULL && strlen( deveui ) == 16 ) {
+        _deveui = String(deveui);
+    }
+}    
+
 bool rn2xx3::init()
 {
   if(_appskey=="0") //appskey variable is set by both OTAA and ABP
@@ -98,7 +104,7 @@ bool rn2xx3::init()
   }
   else if(_otaa==true)
   {
-    return initOTAA(_appeui, _appskey);
+    return initOTAA(_appeui, _appskey, _deveui);
   }
   else
   {
@@ -355,8 +361,9 @@ TX_RETURN_TYPE rn2xx3::txUncnf(String data)
 TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
 {
   bool send_success = false;
-  uint8_t busy_count = 0;
-  uint8_t retry_count = 0;
+  uint16_t busy_count = 0;
+  uint16_t retry_count = 0;
+  uint8_t no_free_ch_count = 0;
 
   //clear serial buffer
   while(_serial.available())
@@ -364,6 +371,11 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
 
   while(!send_success)
   {
+
+    if ( no_free_ch_count > 5 ) {
+        /** Exceeded duty cycle....just bail now */
+        return TX_NO_FREE_CH;
+    }
     //retransmit a maximum of 10 times
     retry_count++;
     if(retry_count>10)
@@ -384,6 +396,9 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
 
     String receivedData = _serial.readStringUntil('\n');
     //TODO: Debug print on receivedData
+//    Serial.print( ("received data: ***" ) );
+//    Serial.print( receivedData );
+//    Serial.println( "***" );
 
     if(receivedData.startsWith("ok"))
     {
@@ -392,6 +407,9 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
       _serial.setTimeout(2000);
 
       //TODO: Debug print on receivedData
+//      Serial.print( ("received data: ***" ) );
+//      Serial.print( receivedData );
+//      Serial.println( "***" );
 
       if(receivedData.startsWith("mac_tx_ok"))
       {
@@ -454,7 +472,7 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
 
     else if(receivedData.startsWith("no_free_ch"))
     {
-      //retry
+      no_free_ch_count++;
       delay(1000);
     }
 
@@ -786,4 +804,21 @@ bool rn2xx3::setFrequencyPlan(FREQ_PLAN fp)
   }
 
   return returnValue;
+}
+
+bool rn2xx3::isJoined() {
+    String rv = sendRawCommand(F("mac get status"));
+//    Serial.print( F("Status: ***") );
+//    Serial.print( rv );
+//    Serial.println( F("***") );
+
+    /** Decode the status packet */
+    /** We're only interested in bit0 */
+    if ( rv.length() != 8 ) {
+        return false;
+    }
+
+    uint8_t bval3 = (int)rv[7] - '0';
+
+    return (bval3 & 0x01) == 0x01;
 }
