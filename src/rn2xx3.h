@@ -33,8 +33,9 @@ enum TX_RETURN_TYPE {
   TX_SUCCESS = 1, // The transmission was successful.
                   // Also the case when a confirmed message was acked.
 
-  TX_WITH_RX = 2  // A downlink message was received after the transmission.
+  TX_WITH_RX = 2, // A downlink message was received after the transmission.
                   // This also implies that a confirmed message is acked.
+  TX_NO_FREE_CH = 3
 };
 
 class rn2xx3
@@ -80,6 +81,7 @@ class rn2xx3
      * To obtain the Hardware EUI, use the hweui() function.
      */
     String deveui();
+    void setdeveui( const char *deveui );
 
     /*
      * Get the RN2xx3's hardware and firmware version number. This is also used
@@ -221,6 +223,11 @@ class rn2xx3
      * Get the RN2xx3's SNR of the last received packet. Helpful to debug link quality.
      */
     int getSNR();
+
+    /*
+     * Return the join status
+     */
+    bool isJoined();
 
     /*
      * Encode an ASCII string to a HEX string as needed when passed
