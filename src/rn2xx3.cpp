@@ -34,6 +34,7 @@ void rn2xx3::autobaud()
   {
     delay(1000);
     _serial.write((byte)0x00);
+    delay(20);
     _serial.write(0x55);
     _serial.println();
     // we could use sendRawCommand(F("sys get ver")); here
@@ -184,7 +185,7 @@ bool rn2xx3::initOTAA(String AppEUI, String AppKey, String DevEUI)
   // TTN does not yet support Adaptive Data Rate.
   // Using it is also only necessary in limited situations.
   // Therefore disable it by default.
-  sendRawCommand(F("mac set adr off"));
+  //sendRawCommand(F("mac set adr off"));
 
   // Switch off automatic replies, because this library can not
   // handle more than one mac_rx per tx. See RN2483 datasheet,
@@ -821,4 +822,19 @@ bool rn2xx3::isJoined() {
     uint8_t bval3 = (int)rv[7] - '0';
 
     return (bval3 & 0x01) == 0x01;
+}
+
+String rn2xx3::factoryReset() {
+    return sendRawCommand( F("sys factoryRESET") );
+}
+
+String rn2xx3::getRadioPower() {
+    return sendRawCommand( F("radio get pwr") );
+}
+
+bool rn2xx3::setRadioPower( int pwr ) {
+    String rv = sendRawCommand( "radio set pwr " + String(pwr) );
+    Serial.print( F("set pwr = ") );
+    Serial.println( rv );
+    return true;
 }

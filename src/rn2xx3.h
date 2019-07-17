@@ -230,6 +230,17 @@ class rn2xx3
     bool isJoined();
 
     /*
+     * Factory reset
+     */
+    String factoryReset();
+
+    /*
+     * Power
+     */
+    String getRadioPower();
+    bool setRadioPower( int pwr );
+
+    /*
      * Encode an ASCII string to a HEX string as needed when passed
      * to the RN2xx3 module.
      */
