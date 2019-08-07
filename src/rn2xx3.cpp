@@ -37,7 +37,7 @@ void rn2xx3::autobaud()
     _serial.write(0x55);
     _serial.println();
     // we could use sendRawCommand(F("sys get ver")); here
-    _serial.println("sys get ver");
+    _serial.println(F("sys get ver"));
     response = _serial.readStringUntil('\n');
   }
 }
@@ -205,7 +205,7 @@ bool rn2xx3::initOTAA(String AppEUI, String AppKey, String DevEUI)
     // Parse 2nd response
     receivedData = _serial.readStringUntil('\n');
 
-    if(receivedData.startsWith("accepted"))
+    if(receivedData.startsWith(F("accepted")))
     {
       joined=true;
       delay(1000);
@@ -312,7 +312,7 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
   _serial.setTimeout(2000);
   delay(1000);
 
-  if(receivedData.startsWith("accepted"))
+  if(receivedData.startsWith(F("accepted")))
   {
     return true;
     //with abp we can always join successfully as long as the keys are valid
@@ -385,7 +385,7 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
     String receivedData = _serial.readStringUntil('\n');
     //TODO: Debug print on receivedData
 
-    if(receivedData.startsWith("ok"))
+    if(receivedData.startsWith(F("ok")))
     {
       _serial.setTimeout(30000);
       receivedData = _serial.readStringUntil('\n');
@@ -393,14 +393,14 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
 
       //TODO: Debug print on receivedData
 
-      if(receivedData.startsWith("mac_tx_ok"))
+      if(receivedData.startsWith(F("mac_tx_ok")))
       {
         //SUCCESS!!
         send_success = true;
         return TX_SUCCESS;
       }
 
-      else if(receivedData.startsWith("mac_rx"))
+      else if(receivedData.startsWith(F("mac_rx")))
       {
         //example: mac_rx 1 54657374696E6720313233
         _rxMessenge = receivedData.substring(receivedData.indexOf(' ', 7)+1);
@@ -408,26 +408,26 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
         return TX_WITH_RX;
       }
 
-      else if(receivedData.startsWith("mac_err"))
+      else if(receivedData.startsWith(F("mac_err")))
       {
         init();
       }
 
-      else if(receivedData.startsWith("invalid_data_len"))
+      else if(receivedData.startsWith(F("invalid_data_len")))
       {
         //this should never happen if the prototype worked
         send_success = true;
         return TX_FAIL;
       }
 
-      else if(receivedData.startsWith("radio_tx_ok"))
+      else if(receivedData.startsWith(F("radio_tx_ok")))
       {
         //SUCCESS!!
         send_success = true;
         return TX_SUCCESS;
       }
 
-      else if(receivedData.startsWith("radio_err"))
+      else if(receivedData.startsWith(F("radio_err")))
       {
         //This should never happen. If it does, something major is wrong.
         init();
@@ -440,35 +440,35 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
       }
     }
 
-    else if(receivedData.startsWith("invalid_param"))
+    else if(receivedData.startsWith(F("invalid_param")))
     {
       //should not happen if we typed the commands correctly
       send_success = true;
       return TX_FAIL;
     }
 
-    else if(receivedData.startsWith("not_joined"))
+    else if(receivedData.startsWith(F("not_joined")))
     {
       init();
     }
 
-    else if(receivedData.startsWith("no_free_ch"))
+    else if(receivedData.startsWith(F("no_free_ch")))
     {
       //retry
       delay(1000);
     }
 
-    else if(receivedData.startsWith("silent"))
+    else if(receivedData.startsWith(F("silent")))
     {
       init();
     }
 
-    else if(receivedData.startsWith("frame_counter_err_rejoin_needed"))
+    else if(receivedData.startsWith(F("frame_counter_err_rejoin_needed")))
     {
       init();
     }
 
-    else if(receivedData.startsWith("busy"))
+    else if(receivedData.startsWith(F("busy")))
     {
       busy_count++;
 
@@ -487,12 +487,12 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
       }
     }
 
-    else if(receivedData.startsWith("mac_paused"))
+    else if(receivedData.startsWith(F("mac_paused")))
     {
       init();
     }
 
-    else if(receivedData.startsWith("invalid_data_len"))
+    else if(receivedData.startsWith(F("invalid_data_len")))
     {
       //should not happen if the prototype worked
       send_success = true;
@@ -609,6 +609,7 @@ String rn2xx3::sendRawCommand(String command)
   while(_serial.available())
     _serial.read();
   _serial.println(command);
+
   String ret = _serial.readStringUntil('\n');
   ret.trim();
 
