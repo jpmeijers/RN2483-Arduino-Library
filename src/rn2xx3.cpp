@@ -150,46 +150,47 @@ bool rn2xx3::initOTAA(String AppEUI, String AppKey, String DevEUI)
     // else fall back to the hard coded value in the header file
   }
 
-  sendRawCommand("mac set deveui "+_deveui);
+  sendMacSet(F("deveui"), _deveui);
 
   // A valid length App EUI was given. Use it.
   if ( AppEUI.length() == 16 )
   {
       _appeui = AppEUI;
-      sendRawCommand("mac set appeui "+_appeui);
+      sendMacSet(F("appeui"), _appeui);
   }
 
   // A valid length App Key was give. Use it.
   if ( AppKey.length() == 32 )
   {
     _appskey = AppKey; //reuse the same variable as for ABP
-    sendRawCommand("mac set appkey "+_appskey);
+    sendMacSet(F("appkey"), _appskey);
   }
 
   if (_moduleType == RN2903)
   {
-    sendRawCommand(F("mac set pwridx 5"));
+    setTXoutputPower(5);
   }
   else
   {
-    sendRawCommand(F("mac set pwridx 1"));
+    setTXoutputPower(1);
   }
 
   // TTN does not yet support Adaptive Data Rate.
   // Using it is also only necessary in limited situations.
   // Therefore disable it by default.
-  sendRawCommand(F("mac set adr off"));
+  setAdaptiveDataRate(false);
 
   // Switch off automatic replies, because this library can not
   // handle more than one mac_rx per tx. See RN2483 datasheet,
   // 2.4.8.14, page 27 and the scenario on page 19.
-  sendRawCommand(F("mac set ar off"));
+
+  setAutomaticReply(false);
 
   // Semtech and TTN both use a non default RX2 window freq and SF.
   // Maybe we should not specify this for other networks.
   // if (_moduleType == RN2483)
   // {
-  //   sendRawCommand(F("mac set rx2 3 869525000"));
+  //   set2ndRecvWindow(3, 869525000);
   // }
   // Disabled for now because an OTAA join seems to work fine without.
 
@@ -275,7 +276,7 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
       break;
     case RN2483:
       sendRawCommand(F("mac reset 868"));
-      // sendRawCommand(F("mac set rx2 3 869525000"));
+      // set2ndRecvWindow(3, 869525000);
       // In the past we set the downlink channel here,
       // but setFrequencyPlan is a better place to do it.
       break;
@@ -284,25 +285,25 @@ bool rn2xx3::initABP(String devAddr, String AppSKey, String NwkSKey)
       return false;
   }
 
-  sendRawCommand("mac set nwkskey "+_nwkskey);
-  sendRawCommand("mac set appskey "+_appskey);
-  sendRawCommand("mac set devaddr "+_devAddr);
-  sendRawCommand(F("mac set adr off"));
+  sendMacSet(F("nwkskey"), _nwkskey);
+  sendMacSet(F("appskey"), _appskey);
+  sendMacSet(F("devaddr"), _devAddr);
+  setAdaptiveDataRate(false);
 
   // Switch off automatic replies, because this library can not
   // handle more than one mac_rx per tx. See RN2483 datasheet,
   // 2.4.8.14, page 27 and the scenario on page 19.
-  sendRawCommand(F("mac set ar off"));
+  setAutomaticReply(false);
 
   if (_moduleType == RN2903)
   {
-    sendRawCommand("mac set pwridx 5");
+    setTXoutputPower(5);
   }
   else
   {
-    sendRawCommand(F("mac set pwridx 1"));
+    setTXoutputPower(1);
   }
-  sendRawCommand(F("mac set dr 5")); //0= min, 7=max
+  sendMacSet(F("dr"), String(5)); //0= min, 7=max
 
   _serial.setTimeout(60000);
   sendRawCommand(F("mac save"));
@@ -603,12 +604,7 @@ void rn2xx3::setDR(int dr)
 {
   if(dr>=0 && dr<=5)
   {
-    delay(100);
-    while(_serial.available())
-      _serial.read();
-    _serial.print("mac set dr ");
-    _serial.println(dr);
-    _serial.readStringUntil('\n');
+    sendMacSet(F("dr"), String(dr));
   }
 }
 
@@ -618,8 +614,7 @@ void rn2xx3::sleep(long msec)
   _serial.println(msec);
 }
 
-
-String rn2xx3::sendRawCommand(String command)
+String rn2xx3::sendRawCommand(const String& command)
 {
   delay(100);
   while(_serial.available())
@@ -628,6 +623,11 @@ String rn2xx3::sendRawCommand(String command)
 
   String ret = _serial.readStringUntil('\n');
   ret.trim();
+
+  if (ret.equals(F("invalid_param")))
+  {
+    _lastErrorInvalidParam = command;
+  }
 
   //TODO: Add debug print
 
@@ -650,12 +650,15 @@ bool rn2xx3::setFrequencyPlan(FREQ_PLAN fp)
       if(_moduleType == RN2483)
       {
         //mac set rx2 <dataRate> <frequency>
-        //sendRawCommand(F("mac set rx2 5 868100000")); //use this for "strict" one channel gateways
-        sendRawCommand(F("mac set rx2 3 869525000")); //use for "non-strict" one channel gateways
-        sendRawCommand(F("mac set ch dcycle 0 99")); //1% duty cycle for this channel
-        sendRawCommand(F("mac set ch dcycle 1 65535")); //almost never use this channel
-        sendRawCommand(F("mac set ch dcycle 2 65535")); //almost never use this channel
-
+        //set2ndRecvWindow(5, 868100000); //use this for "strict" one channel gateways
+        set2ndRecvWindow(3, 869525000); //use for "non-strict" one channel gateways
+        setChannelDutyCycle(0, 99); //1% duty cycle for this channel
+        setChannelDutyCycle(1, 65535); //almost never use this channel
+        setChannelDutyCycle(2, 65535); //almost never use this channel
+        for (uint8_t ch = 3; ch < 8; ch++)
+        {
+          setChannelEnabled(ch, false);
+        }
         returnValue = true;
       }
       else
@@ -684,48 +687,25 @@ bool rn2xx3::setFrequencyPlan(FREQ_PLAN fp)
        * https://github.com/TheThingsNetwork/arduino-device-lib
        */
 
+        uint32_t freq = 867100000;
+        for (uint8_t ch = 0; ch < 8; ch++)
+        {
+          setChannelDutyCycle(ch, 799); // All channels
+          if (ch == 1)
+          {
+            setChannelDataRateRange(ch, 0, 6);
+          }
+          else if (ch > 2)
+          {
+            setChannelDataRateRange(ch, 0, 5);
+            setChannelFrequency(ch, freq);
+            freq = freq + 200000;
+          }
+          setChannelEnabled(ch, true);  // frequency, data rate and duty cycle must be set first.
+        }
+
         //RX window 2
-        sendRawCommand(F("mac set rx2 3 869525000"));
-
-        //channel 0
-        sendRawCommand(F("mac set ch dcycle 0 799"));
-
-        //channel 1
-        sendRawCommand(F("mac set ch drrange 1 0 6"));
-        sendRawCommand(F("mac set ch dcycle 1 799"));
-
-        //channel 2
-        sendRawCommand(F("mac set ch dcycle 2 799"));
-
-        //channel 3
-        sendRawCommand(F("mac set ch freq 3 867100000"));
-        sendRawCommand(F("mac set ch drrange 3 0 5"));
-        sendRawCommand(F("mac set ch dcycle 3 799"));
-        sendRawCommand(F("mac set ch status 3 on"));
-
-        //channel 4
-        sendRawCommand(F("mac set ch freq 4 867300000"));
-        sendRawCommand(F("mac set ch drrange 4 0 5"));
-        sendRawCommand(F("mac set ch dcycle 4 799"));
-        sendRawCommand(F("mac set ch status 4 on"));
-
-        //channel 5
-        sendRawCommand(F("mac set ch freq 5 867500000"));
-        sendRawCommand(F("mac set ch drrange 5 0 5"));
-        sendRawCommand(F("mac set ch dcycle 5 799"));
-        sendRawCommand(F("mac set ch status 5 on"));
-
-        //channel 6
-        sendRawCommand(F("mac set ch freq 6 867700000"));
-        sendRawCommand(F("mac set ch drrange 6 0 5"));
-        sendRawCommand(F("mac set ch dcycle 6 799"));
-        sendRawCommand(F("mac set ch status 6 on"));
-
-        //channel 7
-        sendRawCommand(F("mac set ch freq 7 867900000"));
-        sendRawCommand(F("mac set ch drrange 7 0 5"));
-        sendRawCommand(F("mac set ch dcycle 7 799"));
-        sendRawCommand(F("mac set ch status 7 on"));
+        set2ndRecvWindow(3, 869525000);
 
         returnValue = true;
       }
@@ -747,18 +727,8 @@ bool rn2xx3::setFrequencyPlan(FREQ_PLAN fp)
       {
         for(int channel=0; channel<72; channel++)
         {
-          // Build command string. First init, then add int.
-          String command = F("mac set ch status ");
-          command += channel;
-
-          if(channel>=8 && channel<16)
-          {
-            sendRawCommand(command+F(" on"));
-          }
-          else
-          {
-            sendRawCommand(command+F(" off"));
-          }
+          bool enabled = (channel>=8 && channel<16);
+          setChannelEnabled(channel, enabled);
         }
         returnValue = true;
       }
@@ -773,18 +743,17 @@ bool rn2xx3::setFrequencyPlan(FREQ_PLAN fp)
     {
       if(_moduleType == RN2483)
       {
-        //fix duty cycle - 1% = 0.33% per channel
-        sendRawCommand(F("mac set ch dcycle 0 799"));
-        sendRawCommand(F("mac set ch dcycle 1 799"));
-        sendRawCommand(F("mac set ch dcycle 2 799"));
-
-        //disable non-default channels
-        sendRawCommand(F("mac set ch status 3 on"));
-        sendRawCommand(F("mac set ch status 4 on"));
-        sendRawCommand(F("mac set ch status 5 on"));
-        sendRawCommand(F("mac set ch status 6 on"));
-        sendRawCommand(F("mac set ch status 7 on"));
-
+        for(int channel=0; channel<8; channel++)
+        {
+          if (channel < 3) {
+            //fix duty cycle - 1% = 0.33% per channel
+            setChannelDutyCycle(channel, 799);
+            setChannelEnabled(channel, true);
+          } else {
+            //disable non-default channels
+            setChannelEnabled(channel, false);
+          }
+        }
         returnValue = true;
       }
       else
@@ -846,4 +815,93 @@ rn2xx3::received_t rn2xx3::decodeReceived(const String& receivedData) {
     #undef MATCH_STRING
   }
   return rn2xx3::UNKNOWN;
+}
+
+
+String rn2xx3::getLastErrorInvalidParam() {
+  String res = _lastErrorInvalidParam;
+  _lastErrorInvalidParam = "";
+  return res;
+}
+
+bool rn2xx3::sendMacSet(const String& param, const String& value)
+{
+  String command;
+  command.reserve(10 + param.length() + value.length());
+  command = F("mac set ");
+  command += param;
+  command += ' ';
+  command += value;
+
+  return sendRawCommand(command).equals(F("ok"));
+}
+
+bool rn2xx3::sendMacSetEnabled(const String& param, bool enabled)
+{
+  return sendMacSet(param, enabled ? F("on") : F("off"));
+}
+
+bool rn2xx3::sendMacSetCh(const String& param, unsigned int channel, const String& value)
+{
+  String command;
+  command.reserve(20);
+  command = param;
+  command += ' ';
+  command += channel;
+  command += ' ';
+  command += value;
+  return sendMacSet(F("ch"), command);
+}
+
+bool rn2xx3::sendMacSetCh(const String& param, unsigned int channel, uint32_t value)
+{
+  return sendMacSetCh(param, channel, String(value));
+}
+
+bool rn2xx3::setChannelDutyCycle(unsigned int channel, unsigned int dutyCycle)
+{
+  return sendMacSetCh(F("dcycle"), channel, dutyCycle);
+}
+
+bool rn2xx3::setChannelFrequency(unsigned int channel, uint32_t frequency)
+{
+  return sendMacSetCh(F("freq"), channel, frequency);
+}
+
+bool rn2xx3::setChannelDataRateRange(unsigned int channel, unsigned int minRange, unsigned int maxRange)
+{
+  String value;
+  value = String(minRange);
+  value += ' ';
+  value += String(maxRange);
+  return sendMacSetCh(F("drrange"), channel, value);
+}
+
+bool rn2xx3::setChannelEnabled(unsigned int channel, bool enabled)
+{
+  return sendMacSetCh(F("status"), channel, enabled ? F("on") : F("off"));
+}
+
+bool rn2xx3::set2ndRecvWindow(unsigned int dataRate, uint32_t frequency)
+{
+  String value;
+  value = String(dataRate);
+  value += ' ';
+  value += String(frequency);
+  return sendMacSet(F("rx2"), value);
+}
+
+bool rn2xx3::setAdaptiveDataRate(bool enabled)
+{
+  return sendMacSetEnabled(F("adr"), enabled);
+}
+
+bool rn2xx3::setAutomaticReply(bool enabled)
+{
+  return sendMacSetEnabled(F("ar"), enabled);
+}
+
+bool rn2xx3::setTXoutputPower(int pwridx)
+{
+  return sendMacSet(F("pwridx"), String(pwridx));
 }
