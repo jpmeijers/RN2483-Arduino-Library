@@ -385,124 +385,140 @@ TX_RETURN_TYPE rn2xx3::txCommand(String command, String data, bool shouldEncode)
     String receivedData = _serial.readStringUntil('\n');
     //TODO: Debug print on receivedData
 
-    if(receivedData.startsWith(F("ok")))
+    switch (decodeReceived(receivedData))
     {
-      _serial.setTimeout(30000);
-      receivedData = _serial.readStringUntil('\n');
-      _serial.setTimeout(2000);
-
-      //TODO: Debug print on receivedData
-
-      if(receivedData.startsWith(F("mac_tx_ok")))
+      case rn2xx3::ok:
       {
-        //SUCCESS!!
-        send_success = true;
-        return TX_SUCCESS;
+        _serial.setTimeout(30000);
+        receivedData = _serial.readStringUntil('\n');
+        _serial.setTimeout(2000);
+
+        //TODO: Debug print on receivedData
+
+        switch (decodeReceived(receivedData))
+        {
+          case rn2xx3::mac_tx_ok:
+          {
+            //SUCCESS!!
+            send_success = true;
+            return TX_SUCCESS;
+          }
+
+          case rn2xx3::mac_rx:
+          {
+            //example: mac_rx 1 54657374696E6720313233
+            _rxMessenge = receivedData.substring(receivedData.indexOf(' ', 7)+1);
+            send_success = true;
+            return TX_WITH_RX;
+          }
+
+          case rn2xx3::mac_err:
+          {
+            init();
+            break;
+          }
+
+          case rn2xx3::invalid_data_len:
+          {
+            //this should never happen if the prototype worked
+            send_success = true;
+            return TX_FAIL;
+          }
+
+          case rn2xx3::radio_tx_ok:
+          {
+            //SUCCESS!!
+            send_success = true;
+            return TX_SUCCESS;
+          }
+
+          case rn2xx3::radio_err:
+          {
+            //This should never happen. If it does, something major is wrong.
+            init();
+            break;
+          }
+
+          default:
+          {
+            //unknown response
+            //init();
+          }
+        } // End while after "ok"
+        break;
       }
 
-      else if(receivedData.startsWith(F("mac_rx")))
+      case rn2xx3::invalid_param:
       {
-        //example: mac_rx 1 54657374696E6720313233
-        _rxMessenge = receivedData.substring(receivedData.indexOf(' ', 7)+1);
-        send_success = true;
-        return TX_WITH_RX;
-      }
-
-      else if(receivedData.startsWith(F("mac_err")))
-      {
-        init();
-      }
-
-      else if(receivedData.startsWith(F("invalid_data_len")))
-      {
-        //this should never happen if the prototype worked
+        //should not happen if we typed the commands correctly
         send_success = true;
         return TX_FAIL;
       }
 
-      else if(receivedData.startsWith(F("radio_tx_ok")))
-      {
-        //SUCCESS!!
-        send_success = true;
-        return TX_SUCCESS;
-      }
-
-      else if(receivedData.startsWith(F("radio_err")))
-      {
-        //This should never happen. If it does, something major is wrong.
-        init();
-      }
-
-      else
-      {
-        //unknown response
-        //init();
-      }
-    }
-
-    else if(receivedData.startsWith(F("invalid_param")))
-    {
-      //should not happen if we typed the commands correctly
-      send_success = true;
-      return TX_FAIL;
-    }
-
-    else if(receivedData.startsWith(F("not_joined")))
-    {
-      init();
-    }
-
-    else if(receivedData.startsWith(F("no_free_ch")))
-    {
-      //retry
-      delay(1000);
-    }
-
-    else if(receivedData.startsWith(F("silent")))
-    {
-      init();
-    }
-
-    else if(receivedData.startsWith(F("frame_counter_err_rejoin_needed")))
-    {
-      init();
-    }
-
-    else if(receivedData.startsWith(F("busy")))
-    {
-      busy_count++;
-
-      // Not sure if this is wise. At low data rates with large packets
-      // this can perhaps cause transmissions at more than 1% duty cycle.
-      // Need to calculate the correct constant value.
-      // But it is wise to have this check and re-init in case the
-      // lorawan stack in the RN2xx3 hangs.
-      if(busy_count>=10)
+      case rn2xx3::not_joined:
       {
         init();
+        break;
       }
-      else
+
+      case rn2xx3::no_free_ch:
       {
+        //retry
         delay(1000);
+        break;
       }
-    }
 
-    else if(receivedData.startsWith(F("mac_paused")))
-    {
-      init();
-    }
+      case rn2xx3::silent:
+      {
+        init();
+        break;
+      }
 
-    else if(receivedData.startsWith(F("invalid_data_len")))
-    {
-      //should not happen if the prototype worked
-      send_success = true;
-      return TX_FAIL;
-    }
+      case rn2xx3::frame_counter_err_rejoin_needed:
+      {
+        init();
+        break;
+      }
 
-    else
-    {
-      //unknown response after mac tx command
-      init();
+      case rn2xx3::busy:
+      {
+        busy_count++;
+
+        // Not sure if this is wise. At low data rates with large packets
+        // this can perhaps cause transmissions at more than 1% duty cycle.
+        // Need to calculate the correct constant value.
+        // But it is wise to have this check and re-init in case the
+        // lorawan stack in the RN2xx3 hangs.
+        if(busy_count>=10)
+        {
+          init();
+        }
+        else
+        {
+          delay(1000);
+        }
+        break;
+      }
+
+      case rn2xx3::mac_paused:
+      {
+        init();
+        break;
+      }
+
+      case rn2xx3::invalid_data_len:
+      {
+        //should not happen if the prototype worked
+        send_success = true;
+        return TX_FAIL;
+      }
+
+      default:
+      {
+        //unknown response after mac tx command
+        init();
+        break;
+      }
     }
   }
 
@@ -787,4 +803,47 @@ bool rn2xx3::setFrequencyPlan(FREQ_PLAN fp)
   }
 
   return returnValue;
+}
+
+
+rn2xx3::received_t rn2xx3::decodeReceived(const String& receivedData) {
+  if (receivedData.length() != 0) {
+    #define MATCH_STRING(S) \
+    if (receivedData.startsWith(F(#S))) return (rn2xx3::S);
+
+    switch (receivedData[0]) {
+      case 'b': 
+        MATCH_STRING(busy);
+        break;
+      case 'f': 
+        MATCH_STRING(frame_counter_err_rejoin_needed);
+        break;
+      case 'i': 
+        MATCH_STRING(invalid_data_len);
+        MATCH_STRING(invalid_param);
+        break;
+      case 'm': 
+        MATCH_STRING(mac_err);
+        MATCH_STRING(mac_paused);
+        MATCH_STRING(mac_rx);
+        MATCH_STRING(mac_tx_ok);
+        break;
+      case 'n': 
+        MATCH_STRING(no_free_ch);
+        MATCH_STRING(not_joined);
+        break;
+      case 'o': 
+        MATCH_STRING(ok);
+        break;
+      case 'r': 
+        MATCH_STRING(radio_err);
+        MATCH_STRING(radio_tx_ok);
+        break;
+      case 's': 
+        MATCH_STRING(silent);
+        break;
+    }
+    #undef MATCH_STRING
+  }
+  return rn2xx3::UNKNOWN;
 }

@@ -41,6 +41,26 @@ class rn2xx3
 {
   public:
 
+    enum received_t {
+      busy,
+      frame_counter_err_rejoin_needed,
+      invalid_data_len,
+      invalid_param,
+      mac_err,
+      mac_paused,
+      mac_rx,
+      mac_tx_ok,
+      no_free_ch,
+      not_joined,
+      ok,
+      radio_err,
+      radio_tx_ok,
+      silent,
+      UNKNOWN
+    };
+
+    static received_t decodeReceived(const String& receivedData);
+
     /*
      * A simplified constructor taking only a Stream ({Software/Hardware}Serial) object.
      * The serial port should already be initialised when initialising this library.
@@ -242,6 +262,8 @@ class rn2xx3
     //Flags to switch code paths. Default is to use OTAA.
     bool _otaa = true;
 
+    bool _needsHardReset = false;
+
     //The default address to use on TTN if no address is defined.
     //This one falls in the "testing" address space.
     String _devAddr = "03FFBEEF";
@@ -268,6 +290,7 @@ class rn2xx3
     RN2xx3_t configureModuleType();
 
     void sendEncoded(String);
+
 };
 
 #endif
