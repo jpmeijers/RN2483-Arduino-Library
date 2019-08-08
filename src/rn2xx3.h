@@ -223,6 +223,12 @@ class rn2xx3
     int getSNR();
 
     /*
+     * Get the RN2xx3's voltage measurement on the Vdd in mVolt
+     * 0–3600 (decimal value from 0 to 3600)
+     */
+    int getVbat();
+
+    /*
      * Encode an ASCII string to a HEX string as needed when passed
      * to the RN2xx3 module.
      */
@@ -297,6 +303,8 @@ class rn2xx3
     };
 
     static received_t decodeReceived(const String& receivedData);
+
+    int readIntValue(const String& command);
 
 
     // All "mac set ..." commands return either "ok" or "invalid_param"

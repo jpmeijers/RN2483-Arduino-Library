@@ -568,9 +568,12 @@ String rn2xx3::getRx() {
 
 int rn2xx3::getSNR()
 {
-  String snr = sendRawCommand(F("radio get snr"));
-  snr.trim();
-  return snr.toInt();
+  return readIntValue(F("radio get snr"));
+}
+
+int rn2xx3::getVbat()
+{
+  return readIntValue(F("sys get vdd"));
 }
 
 String rn2xx3::base16decode(String input)
@@ -818,7 +821,15 @@ rn2xx3::received_t rn2xx3::decodeReceived(const String& receivedData) {
 }
 
 
-String rn2xx3::getLastErrorInvalidParam() {
+int rn2xx3::readIntValue(const String& command)
+{
+  String value = sendRawCommand(command);
+  value.trim();
+  return value.toInt();
+}
+
+String rn2xx3::getLastErrorInvalidParam() 
+{
   String res = _lastErrorInvalidParam;
   _lastErrorInvalidParam = "";
   return res;
