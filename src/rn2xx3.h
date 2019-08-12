@@ -317,7 +317,7 @@ class rn2xx3
     bool setChannelDataRateRange(unsigned int channel, unsigned int minRange, unsigned int maxRange);
 
     // Set channel enabled/disabled.
-    // Frequency, data range, duty cycle must be issued prior to enabling the status of that channe
+    // Frequency, data range, duty cycle must be issued prior to enabling the status of that channel
     bool setChannelEnabled(unsigned int channel, bool enabled);
     
     bool set2ndRecvWindow(unsigned int dataRate, uint32_t frequency);
