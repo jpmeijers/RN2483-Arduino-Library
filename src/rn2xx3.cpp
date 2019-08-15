@@ -385,6 +385,11 @@ TX_RETURN_TYPE rn2xx3::txBytes(const byte* data, uint8_t size, uint8_t port)
   return txCommand("mac tx uncnf ", dataToTx, false, port);
 }
 
+TX_RETURN_TYPE rn2xx3::txHexBytes(const String& hexEncoded, uint8_t port)
+{
+  return txCommand("mac tx uncnf ", hexEncoded, false, port);
+}
+
 TX_RETURN_TYPE rn2xx3::txCnf(const String& data, uint8_t port)
 {
   return txCommand("mac tx cnf ", data, true, port);
