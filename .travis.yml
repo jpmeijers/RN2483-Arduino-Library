@@ -15,9 +15,9 @@ env:
         - PLATFORMIO_CI_SRC=examples/ArduinoUnoNano-basic PLATFORMIO_CI_EXTRA_ARGS="--board=uno"
         - PLATFORMIO_CI_SRC=examples/ArduinoUnoNano-downlink PLATFORMIO_CI_EXTRA_ARGS="--board=uno"
         - PLATFORMIO_CI_SRC=examples/ESP8266-RN2483-basic PLATFORMIO_CI_EXTRA_ARGS="--board=d1_mini"
-        - PLATFORMIO_CI_SRC=examples/SodaqAutonomo-basic PLATFORMIO_CI_EXTRA_ARGS="--board=sodaq_autonomo"
-        - PLATFORMIO_CI_SRC=examples/SodaqOne-TTN-Mapper-ascii PLATFORMIO_CI_EXTRA_ARGS="--board=sodaq_one"
-        - PLATFORMIO_CI_SRC=examples/SodaqOne-TTN-Mapper-binary PLATFORMIO_CI_EXTRA_ARGS="--board=sodaq_one"
+        - PLATFORMIO_CI_SRC=examples/SodaqAutonomo-basic PLATFORMIO_CI_EXTRA_ARGS="--board=sodaq_autonomo" PLATFORMIO_CI_EXTRA_LIBS="Sodaq_UBlox_GPS"
+        - PLATFORMIO_CI_SRC=examples/SodaqOne-TTN-Mapper-ascii PLATFORMIO_CI_EXTRA_ARGS="--board=sodaq_one" PLATFORMIO_CI_EXTRA_LIBS="Sodaq_UBlox_GPS"
+        - PLATFORMIO_CI_SRC=examples/SodaqOne-TTN-Mapper-binary PLATFORMIO_CI_EXTRA_ARGS="--board=sodaq_one" PLATFORMIO_CI_EXTRA_LIBS="Sodaq_UBlox_GPS"
         - PLATFORMIO_CI_SRC=examples/TheThingsUno-basic PLATFORMIO_CI_EXTRA_ARGS="--board=leonardo"
         - PLATFORMIO_CI_SRC=examples/TheThingsUno-GPSshield-TTN-Mapper-binary PLATFORMIO_CI_EXTRA_ARGS="--board=leonardo"
 
@@ -27,4 +27,7 @@ install:
     - pio update
 
 script:
+    - if [ "PLATFORMIO_CI_EXTRA_LIBS" != "" ]; then
+        platformio lib install $PLATFORMIO_CI_EXTRA_LIBS
+      fi
     - platformio ci --lib="./src" $PLATFORMIO_CI_EXTRA_ARGS
