@@ -28,6 +28,6 @@ install:
 
 script:
     - if [ "PLATFORMIO_CI_EXTRA_LIBS" != "" ]; then
-        platformio lib install $PLATFORMIO_CI_EXTRA_LIBS
+        platformio lib install $PLATFORMIO_CI_EXTRA_LIBS;
       fi
     - platformio ci --lib="./src" $PLATFORMIO_CI_EXTRA_ARGS
