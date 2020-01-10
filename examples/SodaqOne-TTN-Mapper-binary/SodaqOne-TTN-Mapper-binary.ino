@@ -55,12 +55,11 @@ function Decoder(bytes, port) {
 }
  *
  */
-#include <Arduino.h>
 #include "Sodaq_UBlox_GPS.h"
 #include <rn2xx3.h>
 
-//create an instance of the rn2xx3 library,
-//giving Serial1 as stream to use for communication with the radio
+// Create an instance of the rn2xx3 library,
+// Giving Serial1 as stream to use for communication with the radio
 rn2xx3 myLora(Serial1);
 
 String toLog;
@@ -77,7 +76,7 @@ void setup()
     SerialUSB.begin(57600);
     Serial1.begin(57600);
 
-    // make sure usb serial connection is available,
+    // Make sure usb serial connection is available,
     // or after 10s go on anyway for 'headless' use of the node.
     while ((!SerialUSB) && (millis() < 10000));
 
@@ -85,13 +84,13 @@ void setup()
 
     initialize_radio();
 
-    //transmit a startup message
+    // Transmit a startup message
     myLora.tx("TTN Mapper on Sodaq One");
 
     // Enable next line to enable debug information of the sodaq_gps
     //sodaq_gps.setDiag(SerialUSB);
 
-    // initialize GPS
+    // Initialize GPS
     sodaq_gps.init(GPS_ENABLE);
 
     // Set the datarate/spreading factor at which we communicate.
@@ -114,7 +113,7 @@ void initialize_radio()
     Serial1.read();
   }
 
-  //print out the HWEUI so that we can register it via ttnctl
+  // Print out the HWEUI so that we can register it via ttnctl
   String hweui = myLora.hweui();
   while(hweui.length() != 16)
   {
@@ -127,7 +126,7 @@ void initialize_radio()
   SerialUSB.println("RN2xx3 firmware version:");
   SerialUSB.println(myLora.sysver());
 
-  //configure your keys and join the network
+  // Configure your keys and join the network
   SerialUSB.println("Trying to join TTN");
   bool join_result = false;
 
@@ -140,7 +139,7 @@ void initialize_radio()
   while(!join_result)
   {
     SerialUSB.println("Unable to join. Are your keys correct, and do you have TTN coverage?");
-    delay(60000); //delay a minute before retry
+    delay(60000); // Delay a minute before retry
     digitalWrite(LED_BLUE, LOW);
     join_result = myLora.init();
     digitalWrite(LED_BLUE, HIGH);
@@ -154,21 +153,17 @@ void loop()
 {
   SerialUSB.println("Waiting for GPS fix");
 
-  digitalWrite(LED_GREEN, LOW);
-  // Keep the GPS enabled after we do a scan, increases accuracy
-  sodaq_gps.scan(true);
+  // Turn off GREEN and turn on RED led to indicate GPS usage
   digitalWrite(LED_GREEN, HIGH);
+  digitalWrite(LED_RED, LOW);
 
-  // if the latitude is 0, we likely do not have a GPS fix yet, so wait longer
-  while(sodaq_gps.getLat()==0.0)
+  // Scan until we have a succesful GPS fix
+  while(!sodaq_gps.scan(true))
   {
-    SerialUSB.println("Latitude still 0.0, doing another scan");
-
-    digitalWrite(LED_RED, LOW);
-    // Keep the GPS enabled after we do a scan, increases accuracy
-    sodaq_gps.scan(true);
-    digitalWrite(LED_RED, HIGH);
+    SerialUSB.println("No GPS fix, doing another scan");
   }
+
+  digitalWrite(LED_RED, HIGH);
 
   LatitudeBinary = ((sodaq_gps.getLat() + 90) / 180) * 16777215;
   LongitudeBinary = ((sodaq_gps.getLon() + 180) / 360) * 16777215;
@@ -209,6 +204,7 @@ void loop()
   SerialUSB.print(" hex ");
   SerialUSB.println(toLog);
 
+  // Turn on blue to indicate Lora usage
   digitalWrite(LED_BLUE, LOW);
   myLora.txBytes(txBuffer, sizeof(txBuffer));
   digitalWrite(LED_BLUE, HIGH);
