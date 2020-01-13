@@ -130,8 +130,11 @@ void initialize_radio()
   SerialUSB.println("Trying to join TTN");
   bool join_result = false;
 
-  //ABP: initABP(String addr, String AppSKey, String NwkSKey);
-  join_result = myLora.initABP("02017201", "8D7FFEF938589D95AAD928C2E2E7E48F", "AE17E567AECC8787F749A62F5541D522");
+  const char *devAddr = "02017201";
+  const char *nwkSKey = "AE17E567AECC8787F749A62F5541D522";
+  const char *appSKey = "8D7FFEF938589D95AAD928C2E2E7E48F";
+
+  join_result = myLora.initABP(devAddr, appSKey, nwkSKey);
 
   //OTAA: initOTAA(String AppEUI, String AppKey);
   //join_result = myLora.initOTAA("70B3D57ED00001A6", "A23C96EE13804963F8C2BD6285448198");
