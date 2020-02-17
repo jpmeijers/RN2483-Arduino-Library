@@ -40,6 +40,8 @@ public:
    */
   void   setAsyncMode(bool enabled);
 
+  bool   getAsyncMode() const;
+
   /*
    * Transmit the correct sequence to the rn2xx3 to trigger its autobauding feature.
    * After this operation the rn2xx3 should communicate at the same baud rate than us.

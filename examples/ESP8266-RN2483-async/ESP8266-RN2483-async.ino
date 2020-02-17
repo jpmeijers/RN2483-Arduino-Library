@@ -39,16 +39,15 @@ unsigned long _timer         = 0;
 unsigned long _timeout       = 0;
 unsigned long _start_command = 0;
 
-bool _async_mode_enabled = false;
 bool _command_sent       = false;
 int  _message_count      = 0;
 
 void toggle_async_mode()
 {
-  _async_mode_enabled = !_async_mode_enabled;
-  myLora.setAsyncMode(_async_mode_enabled);
+  bool new_async_mode_enabled = !myLora.getAsyncMode();
+  myLora.setAsyncMode(new_async_mode_enabled);
   Serial.print(F("Async mode: "));
-  Serial.println(_async_mode_enabled ? F("enabled") : F("disabled"));
+  Serial.println(new_async_mode_enabled ? F("enabled") : F("disabled"));
 }
 
 unsigned long time_passed_since(unsigned long start)
@@ -247,7 +246,7 @@ void loop_handle_LoRa_command() {
 
 // the loop routine runs over and over again forever:
 void loop() {
-  if (_async_mode_enabled) {
+  if (myLora.getAsyncMode()) {
     myLora.async_loop();
   }
   loop_handle_LoRa_command();

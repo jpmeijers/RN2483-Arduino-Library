@@ -27,6 +27,10 @@ void rn2xx3::setAsyncMode(bool enabled) {
   _rn2xx3_handler.setAsyncMode(enabled);
 }
 
+bool rn2xx3::getAsyncMode() const {
+  return _rn2xx3_handler.getAsyncMode();
+}
+
 bool rn2xx3::autobaud()
 {
   // FIXME TD-er: Must fix this, as it is not working well.
