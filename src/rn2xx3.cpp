@@ -166,6 +166,11 @@ rn2xx3_handler::RN_state rn2xx3::wait_command_accepted(unsigned long timeout)
   return _rn2xx3_handler.wait_command_accepted(timeout);
 }
 
+bool rn2xx3::command_finished() const
+{
+  return _rn2xx3_handler.command_finished();
+}
+
 String rn2xx3::getRx() {
   return _rn2xx3_handler.get_rx_message();
 }

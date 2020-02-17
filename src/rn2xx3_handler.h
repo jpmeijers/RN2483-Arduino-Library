@@ -52,6 +52,10 @@ public:
   // It will return when the state waiting for reply_received_rx2 has been reached, or the command has finished (due to error)
   RN_state wait_command_accepted(unsigned long timeout = 10000);
 
+  // Check whether a command has finished.
+  bool     command_finished() const;
+
+
   /*
    * Initialise the RN2xx3 and join the LoRa network (if applicable).
    * This function can only be called after calling initABP() or initOTAA().
@@ -150,8 +154,6 @@ public:
   bool setFrequencyPlan(RN2xx3_datatypes::Freq_plan fp);
 
 private:
-
-  bool          command_finished() const;
 
   // Return the data to send
   const String& get_send_data() const;

@@ -208,6 +208,8 @@ public:
 
   rn2xx3_handler::RN_state wait_command_accepted(unsigned long timeout = 10000);
 
+  bool command_finished() const;
+
   /*
    * Change the datarate at which the RN2xx3 transmits.
    * A value of between 0 and 5 can be specified,
