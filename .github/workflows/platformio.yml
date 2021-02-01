@@ -55,7 +55,7 @@ jobs:
           pip install --upgrade platformio
       - name: Add PlatformIO extra libs
         run: |
-          pio lib install {{ matrix.pio_extra_libs }};
+          pio lib install ${{ matrix.pio_extra_libs }}
         if: matrix.pio_extra_libs != ''
       - name: Build application
         env:
