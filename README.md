@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/jpmeijers/RN2483-Arduino-Library.svg?branch=master)](https://travis-ci.org/jpmeijers/RN2483-Arduino-Library)
-[![Github CI Status](https://github.com/jpmeijers/RN2483-Arduino-Library/workflows/CI/badge.svg)](https://github.com/jpmeijers/RN2483-Arduino-Library/workflows/CI/badge.svg)
+[![Github CI Status](https://github.com/jpmeijers/RN2483-Arduino-Library/actions?query=workflow%3ACI)](https://github.com/jpmeijers/RN2483-Arduino-Library/workflows/CI/badge.svg)
 
 # RN2483-Arduino-Library
 Arduino C++ code to communicate with a Microchip RN2483 and RN2903 module
