@@ -10,8 +10,6 @@ jobs:
   build:
     strategy:
       fail-fast: false
-      os: [ubuntu-20.04]
-      python-version: [3.7]
       matrix:
         include:
           - example: "examples/ArduinoUnoNano-basic"
@@ -32,13 +30,13 @@ jobs:
             board: "leonardo"
           - example: "TheThingsUno-GPSshield-TTN-Mapper-binary"
             board: "leonardo"
-    runs-on: ${{ matrix.os }}
+    runs-on: "ubuntu-20.04"
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python 3.7
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.7"
       - name: Cache pip
         uses: actions/cache@v2
         with:
