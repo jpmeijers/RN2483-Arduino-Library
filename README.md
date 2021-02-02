@@ -1,4 +1,4 @@
-[![Github CI Status](https://github.com/jpmeijers/RN2483-Arduino-Library/workflows/CI/badge.svg)](https://github.com/jpmeijers/RN2483-Arduino-Library/workflows/CI/badge.svg)
+[![Github CI Status](https://github.com/jpmeijers/RN2483-Arduino-Library/workflows/CI/badge.svg)](https://github.com/jpmeijers/RN2483-Arduino-Library/actions?query=workflow%3ACI)
 
 # RN2483-Arduino-Library
 Arduino C++ code to communicate with a Microchip RN2483 and RN2903 module
