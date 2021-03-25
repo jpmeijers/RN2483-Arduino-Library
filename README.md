@@ -9,7 +9,7 @@ At the top of this website (https://github.com/jpmeijers/RN2483-Arduino-Library)
 Follow the instructions on https://www.arduino.cc/en/Guide/Libraries to import this library into your Arduino IDE.
 
 # Examples
-Examples with this library are meant to be used to contribute to TTN Mapper (http://ttnmapper.org).
+Examples with this library are meant to be used to contribute to TTN Mapper (https://ttnmapper.org).
 
 # Software Serial
 This library supports hardware and software serial for communication with the RN2xx3 module. Se the examples for clarification how to do this.
