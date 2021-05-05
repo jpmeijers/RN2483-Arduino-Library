@@ -192,7 +192,7 @@ void build_packet()
   txBuffer[6] = ( altitudeGps >> 8 ) & 0xFF;
   txBuffer[7] = altitudeGps & 0xFF;
 
-  hdopGps = gps.hdop.value()/10;
+  hdopGps = gps.hdop.value()*10;
   txBuffer[8] = hdopGps & 0xFF;
 
   toLog = "";
