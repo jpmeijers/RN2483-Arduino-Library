@@ -172,7 +172,9 @@ bool rn2xx3::initOTAA(const String& AppEUI, const String& AppKey, const String& 
   }
   else
   {
+    // RN2483 (Europe)
     setTXoutputPower(1);
+    sendRawCommand(F("mac set dr 5")); //0= min, 7=max
   }
 
   // TTN does not yet support Adaptive Data Rate.
