@@ -21,7 +21,9 @@ extern "C" {
    @param serial Needs to be an already opened Stream ({Software/Hardware}Serial) to write to and read from.
  */
 rn2xx3::rn2xx3(Stream& serial) : _rn2xx3_handler(serial)
-{}
+{
+  setSerialTimeout();
+}
 
 void rn2xx3::setAsyncMode(bool enabled) {
   _rn2xx3_handler.setAsyncMode(enabled);
@@ -43,9 +45,10 @@ bool rn2xx3::autobaud()
     {
       delay(1000);
     }
-    _rn2xx3_handler._serial.write((byte)0x00);
+    _rn2xx3_handler._serial.write((uint8_t)0x00);
     _rn2xx3_handler._serial.write(0x55);
     _rn2xx3_handler._serial.println();
+    clearSerialBuffer();
 
     // we could use sendRawCommand(F("sys get ver")); here
     _rn2xx3_handler._serial.println(F("sys get ver"));
@@ -61,6 +64,28 @@ bool rn2xx3::autobaud()
 String rn2xx3::sysver()
 {
   return _rn2xx3_handler.sysver();
+}
+
+bool rn2xx3::resetModule()
+{
+  // reset the module - this will clear all keys set previously
+  String result;
+  switch (configureModuleType())
+  {    
+    case RN2903:
+      result = sendRawCommand(F("mac reset"));
+      break;
+    case RN2483:
+      result = sendRawCommand(F("mac reset 868"));
+      break;
+    default:
+      // we shouldn't go forward with the init
+      _lastErrorInvalidParam = F("error in reset");
+      return false;
+  }
+  _lastErrorInvalidParam += F("success resetmodule");;
+  return true;
+//  return determineReceivedDataType(result) == ok;
 }
 
 String rn2xx3::hweui()
@@ -103,11 +128,6 @@ bool rn2xx3::init()
 }
 
 bool rn2xx3::initOTAA(const String& AppEUI, const String& AppKey, const String& DevEUI)
-{
-  return _rn2xx3_handler.initOTAA(AppEUI, AppKey, DevEUI);
-}
-
-bool rn2xx3::initOTAA(uint8_t *AppEUI, uint8_t *AppKey, uint8_t *DevEUI)
 {
   return _rn2xx3_handler.initOTAA(AppEUI, AppKey, DevEUI);
 }
@@ -266,3 +286,4 @@ const RN2xx3_status& rn2xx3::getStatus() const
 {
   return _rn2xx3_handler.Status;
 }
+
